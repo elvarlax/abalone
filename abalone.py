@@ -86,7 +86,7 @@ def box_plot(x_val, y_val, data):
 
 
 def matrix_plot(data):
-    sns.pairplot(df)
+    sns.pairplot(data)
     plt.show()
 
 
@@ -115,7 +115,6 @@ if __name__ == "__main__":
 
     # pca(Y, y, MFI)
 
-    # Picking only columns Length, Diameter, Height, Whole weight, Shucked weight, Viscera weight, Shell weight
     df = dataset[dataset.columns[1:-1]]
-    # box_plot(dataset['Sex'], dataset['Age'], df)
+    box_plot(dataset['Sex'], dataset['Age'], df)
     matrix_plot(df)
