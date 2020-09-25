@@ -13,31 +13,22 @@ dataset = pd.read_csv('abalone.csv')
 X = dataset.iloc[:, :-1].values
 y = dataset.iloc[:, -1].values
 
-# Splitting the dataset into the Training set and Test set
-from sklearn.model_selection import train_test_split
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-
-# Printing X_train
-print(X_train)
-
-Y = np.zeros((len(X),len(X[1])-1),float)
+Y = np.zeros((len(X), len(X[1]) - 1), float)
 for i in range(len(Y)):
-    for f in range(1,len(Y[i])):
-        Y[i][f-1] = float(X[i][f])
-        
-age = np.zeros(len(y),float)
+    for f in range(1, len(Y[i])):
+        Y[i][f - 1] = float(X[i][f])
+
+age = np.zeros(len(y), float)
 for i in range(len(y)):
-    age[i] = float(y[i])+1.5
-    
-MFIstr = X[:,0]
-MFI,b = c2n.categoric2numeric(X[:,0])
+    age[i] = float(y[i]) + 1.5
 
-X = np.hstack((MFI,Y))
+MFIstr = X[:, 0]
+MFI, b = c2n.categoric2numeric(X[:, 0])
 
-#PCA
-def PCAAnalysis(Y,y,MFI):
+X = np.hstack((MFI, Y))
+
+
+def pca(Y, y, MFI):
     L = len(Y[0])
     Y.dtype = np.float
     Y = Y - np.ones((len(Y), 1)) * Y.mean(0)
@@ -48,7 +39,7 @@ def PCAAnalysis(Y,y,MFI):
     for i in range(len(rho)):
         rhoa[i] = sum(rho[:i])
 
-    K = 7;
+    K = 7
     plt.figure()
     plt.plot(rhoa, 'o-')
     plt.plot(rho, 'o-')
@@ -70,9 +61,9 @@ def PCAAnalysis(Y,y,MFI):
     plt.xlabel("PCA #3")
     plt.ylabel("PCA #4")
     plt.show()
-    
+
     plt.figure()
-    plt.plot(age,Xhat[:,0],'o')
+    plt.plot(age, Xhat[:, 0], 'o')
     plt.xlabel("Rings")
     plt.ylabel("PCA #1")
     plt.show()
@@ -85,7 +76,7 @@ def PCAAnalysis(Y,y,MFI):
             st = 'x'
         else:
             st = '+'
-        plt.plot(Xhat[i,0],Xhat[i,1],st,color = (age[i]/33,0,1-age[i]/33))
+        plt.plot(Xhat[i, 0], Xhat[i, 1], st, color=(age[i] / 33, 0, 1 - age[i] / 33))
     plt.xlabel("PCA #1")
     plt.ylabel("PCA #2")
     plt.show()
@@ -98,12 +89,13 @@ def PCAAnalysis(Y,y,MFI):
             st = 'x'
         else:
             st = '+'
-        plt.plot(Xhat[i,2],Xhat[i,3],st,color = (age[i]/33,0,1-age[i]/33))
+        plt.plot(Xhat[i, 2], Xhat[i, 3], st, color=(age[i] / 33, 0, 1 - age[i] / 33))
     plt.xlabel("PCA #3")
     plt.ylabel("PCA #4")
     plt.show()
-    
+
     return V
+
 
 def boxplot(dataset):
     attributeNames = dataset.columns
@@ -113,8 +105,3 @@ def boxplot(dataset):
     plt.ylabel('cm')
     plt.title('Boxplot')
     plt.show()
-
-
-# PCAAnalysis(X)
-
-boxplot(dataset)
