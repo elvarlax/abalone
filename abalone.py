@@ -12,7 +12,7 @@ X = dataset.iloc[:, :-1].values
 y = dataset.iloc[:, -1].values
 
 # Basic summary statistics
-print(dataset.describe())
+# print(dataset)
 
 # Splitting the dataset into the Training set and Test set
 from sklearn.model_selection import train_test_split
@@ -103,3 +103,15 @@ def PCAAnalysis(X):
     plt.xlabel("PCA #3")
     plt.ylabel("PCA #4")       
     plt.show()
+
+def boxplot(dataset):
+    attributeNames = dataset.columns.tolist()
+    data = dataset.iloc[:, :-1]
+    plt.boxplot(data)
+    xtricks(range(1.5).attributeNames)
+    ylabel('cm')
+    title('Boxplot')
+    show()
+    
+    
+boxplot(dataset)
