@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.linalg as linalg
+import categoric2numeric as c2n
 
 get_ipython().run_line_magic('matplotlib', 'qt')
 
@@ -24,17 +25,23 @@ print(X_test)
 # Printing X_train
 print(X_train)
 
-PCAAnalysis(X)
+Y = np.zeros((len(X),len(X[1])-1),float)
+for i in range(len(Y)):
+    for f in range(1,len(Y[i])):
+        Y[i][f-1] = float(X[i][f])
+        
+age = np.zeros(len(y),float)
+for i in range(len(y)):
+    age[i] = float(y[i])+1.5
+    
+MFIstr = X[:,0]
+MFI,b = c2n.categoric2numeric(X[:,0])
+
+X = np.hstack((MFI,Y))
 
 #PCA
-def PCAAnalysis(X):
+def PCAAnalysis(Y,y,MFI):
     L = len(Y[0])
-    Ystr = X[1:,1:]
-    print(str(Ystr))
-    Y = np.zeros((len(Ystr),len(Ystr[1])),float)
-    for i in range(len(Y)):
-        for f in range(len(Y[i])):
-            Y[i][f] = float(Ystr[i][f])
     Y.dtype = np.float
     Y = Y - np.ones((len(Y),1))*Y.mean(0)
     U,S,V = linalg.svd(Y,full_matrices=False)
@@ -67,42 +74,43 @@ def PCAAnalysis(X):
     plt.ylabel("PCA #4")       
     plt.show()
     
-    rings = np.zeros((len(y)-1),float)
-    for i in range(1,len(y)):
-        rings[i-1] = float(y[i])
     plt.figure()
-    plt.plot(rings,Xhat[:,0],'o')
+    plt.plot(age,Xhat[:,0],'o')
     plt.xlabel("Rings")
     plt.ylabel("PCA #1")       
     plt.show()
     
     
     plt.figure()
-    for i in range(len(rings)):
-        if X[i+1,0] == 'M':
+    for i in range(len(age)):
+        if MFI[i] == 'M':
             st = 'o'
-        elif X[i+1,0] == 'F':
+        elif MFI[i] == 'F':
             st = 'x'
         else:
             st = '+'
-        plt.plot(Xhat[i,0],Xhat[i,1],st,color = (rings[i]/30,0,1-rings[i]/30))
+        plt.plot(Xhat[i,0],Xhat[i,1],st,color = (age[i]/33,0,1-age[i]/33))
     plt.xlabel("PCA #1")
     plt.ylabel("PCA #2")       
     plt.show()
     
     
     plt.figure()
-    for i in range(len(rings)):
-        if X[i+1,0] == 'M':
+    for i in range(len(age)):
+        if MFI[i] == 'M':
             st = 'o'
-        elif X[i+1,0] == 'F':
+        elif MFI[i] == 'F':
             st = 'x'
         else:
             st = '+'
-        plt.plot(Xhat[i,2],Xhat[i,3],st,color = (rings[i]/30,0,1-rings[i]/30))
+        plt.plot(Xhat[i,2],Xhat[i,3],st,color = (age[i]/33,0,1-age[i]/33))
     plt.xlabel("PCA #3")
     plt.ylabel("PCA #4")       
     plt.show()
+    
+    return V
+
+V = PCAAnalysis(X,age,MFIstr)
 
 def boxplot(dataset):
     attributeNames = dataset.columns.tolist()
