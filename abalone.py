@@ -2,31 +2,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 import scipy.linalg as linalg
 import categoric2numeric as c2n
 from IPython import get_ipython
 
+
 # get_ipython().run_line_magic('matplotlib', 'qt')
-
-# Importing the dataset
-dataset = pd.read_csv('abalone.csv')
-X = dataset.iloc[:, :-1].values
-y = dataset.iloc[:, -1].values
-
-Y = np.zeros((len(X), len(X[1]) - 1), float)
-for i in range(len(Y)):
-    for f in range(1, len(Y[i])):
-        Y[i][f - 1] = float(X[i][f])
-
-age = np.zeros(len(y), float)
-for i in range(len(y)):
-    age[i] = float(y[i]) + 1.5
-
-MFIstr = X[:, 0]
-MFI, b = c2n.categoric2numeric(X[:, 0])
-
-X = np.hstack((MFI, Y))
-
 
 def pca(Y, y, MFI):
     L = len(Y[0])
@@ -97,11 +79,43 @@ def pca(Y, y, MFI):
     return V
 
 
-def boxplot(dataset):
-    attributeNames = dataset.columns
-    data = dataset.iloc[:, 1:-1]
-    plt.boxplot(data)
-    plt.xticks(range(1, 6), attributeNames)
-    plt.ylabel('cm')
-    plt.title('Boxplot')
+def box_plot(x_val, y_val, data):
+    plt.figure()
+    ax = sns.boxplot(x=x_val, y=y_val, data=data, palette="Set1")
     plt.show()
+
+
+def matrix_plot(data):
+    sns.pairplot(df)
+    plt.show()
+
+
+if __name__ == "__main__":
+    # Import dataset
+    dataset = pd.read_csv('abalone.csv')
+    X = dataset.iloc[:, :-1].values
+    y = dataset.iloc[:, -1].values
+    # Create a age column from the Rings column + 1.5
+    dataset['Age'] = dataset['Rings'] + 1.5
+    dataset.drop('Rings', axis=1, inplace=True)
+
+    # Move this to a function
+    Y = np.zeros((len(X), len(X[1]) - 1), float)
+    for i in range(len(Y)):
+        for f in range(1, len(Y[i])):
+            Y[i][f - 1] = float(X[i][f])
+
+    age = np.zeros(len(y), float)
+    for i in range(len(y)):
+        age[i] = float(y[i]) + 1.5
+
+    MFIstr = X[:, 0]
+    MFI, b = c2n.categoric2numeric(X[:, 0])
+    X = np.hstack((MFI, Y))
+
+    # pca(Y, y, MFI)
+
+    # Picking only columns Length, Diameter, Height, Whole weight, Shucked weight, Viscera weight, Shell weight
+    df = dataset[dataset.columns[1:-1]]
+    # box_plot(dataset['Sex'], dataset['Age'], df)
+    matrix_plot(df)
