@@ -6,12 +6,8 @@ import scipy.linalg as linalg
 
 get_ipython().run_line_magic('matplotlib', 'qt')
 
-# Adding header
-attribute_names = ['Sex', 'Length', 'Diameter', 'Height', 'Whole_weight', 'Shucked_weight', 'Viscera_weight',
-                   'Shell_weight', 'Rings']
-
 # Importing the dataset
-dataset = pd.read_csv('abalone.csv', header=None, names=attribute_names)
+dataset = pd.read_csv('abalone.csv')
 X = dataset.iloc[:, :-1].values
 y = dataset.iloc[:, -1].values
 
@@ -28,6 +24,7 @@ print(X_test)
 # Printing X_train
 print(X_train)
 
+PCAAnalysis(X)
 
 #PCA
 def PCAAnalysis(X):
