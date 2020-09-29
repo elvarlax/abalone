@@ -14,8 +14,10 @@ import similarity as sim
 def pca(Y, y, MFI):
     L = len(Y[0])
     Y.dtype = np.float
-    Y = Y - np.ones((len(Y), 1)) * Y.mean(0)
-    U, S, V = linalg.svd(Y, full_matrices=False)
+    
+    Y = Y - np.ones((len(Y), 1)) * Y.mean(0) # Translate the data to around origin
+    Y = Y / np.ones((len(Y), 1)) * Y.std(0)
+    U, S, V = linalg.svd(Y, full_matrices=False) # 
 
     rho = S / sum(S)
     rhoa = np.zeros((len(S),), float)
@@ -23,7 +25,7 @@ def pca(Y, y, MFI):
 
         rhoa[i] = sum(rho[:(i+1)])
     
-    K = 7;
+    K = 4;
     plt.figure()
     plt.plot(rhoa, 'o-')
     plt.plot(rho, 'o-')
@@ -77,6 +79,13 @@ def pca(Y, y, MFI):
     plt.xlabel("PCA #3")
     plt.ylabel("PCA #4")
     plt.show()
+    
+    v = np.vstack((np.vstack((MFI,y)),Xhat[:,:3].T))
+    df2 = pd.DataFrame(v.T,
+                   columns=['Sex','Age', 'PCA1', 'PCA2', 'PCA3'])
+    plt.figure()
+    sns.pairplot(df2,hue = 'Sex')
+    plt.show()
 
     return V
 
@@ -129,7 +138,7 @@ if __name__ == "__main__":
     box_plot(dataset['Sex'], dataset['Age'], df)
     matrix_plot(dataset)
         
-    pca(X,age, MFI)
+    pca(X,age, MFIstr)
 
 
     
