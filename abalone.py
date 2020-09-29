@@ -118,3 +118,11 @@ if __name__ == "__main__":
     df = dataset[dataset.columns[1:-1]]
     box_plot(dataset['Sex'], dataset['Age'], df)
     matrix_plot(df)
+
+
+#def similarity_analysis(data):
+    
+
+
+
+
