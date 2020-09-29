@@ -6,6 +6,7 @@ import seaborn as sns
 import scipy.linalg as linalg
 import categoric2numeric as c2n
 from IPython import get_ipython
+import similarity as sim
 
 
 # get_ipython().run_line_magic('matplotlib', 'qt')
@@ -89,12 +90,19 @@ def matrix_plot(data):
     sns.pairplot(data)
     plt.show()
 
+def similarity_analysis(X,Y, attribute_names):
+    method='cor'
+    similar_mat= np.zeros((len(X), len(X)), float)
+    for attribute in attribute_names:
+        for attribute in attribute_names:
+            sim(X, Y, method)
 
 if __name__ == "__main__":
     # Import dataset
-    dataset = pd.read_csv('abalone.csv')
+    dataset = pd.read_csv('abalone.csv') 
     X = dataset.iloc[:, :-1].values
     y = dataset.iloc[:, -1].values
+    attributeNames = np.asarray(dataset.columns[:-1])
     # Create a age column from the Rings column + 1.5
     dataset['Age'] = dataset['Rings'] + 1.5
     dataset.drop('Rings', axis=1, inplace=True)
@@ -120,7 +128,7 @@ if __name__ == "__main__":
     matrix_plot(df)
 
 
-#def similarity_analysis(data):
+
     
 
 
