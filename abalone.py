@@ -22,6 +22,7 @@ def pca(Y, y, MFI):
     rho = S / sum(S)
     rhoa = np.zeros((len(S),), float)
     for i in range(len(rho)):
+        rhoa[i] = sum(rho[:(i + 1)])
 
         rhoa[i] = sum(rho[:(i+1)])
     
@@ -75,7 +76,7 @@ def pca(Y, y, MFI):
             st = 'x'
         else:
             st = '+'
-        plt.plot(Xhat[i,2],Xhat[i,3],st,color = (min(age[i]/15,1),0,max(1-age[i]/15,0)))
+        plt.plot(Xhat[i, 2], Xhat[i, 3], st, color=(min(age[i] / 15, 1), 0, max(1 - age[i] / 15, 0)))
     plt.xlabel("PCA #3")
     plt.ylabel("PCA #4")
     plt.show()
@@ -98,7 +99,7 @@ def box_plot(x_val, y_val, data):
 
 def matrix_plot(data):
     plt.figure()
-    ax = sns.pairplot(data,hue='Sex', palette="Set1", markers = ["s","o","D"])
+    ax = sns.pairplot(data, hue='Sex', palette="Set1", markers=["s", "o", "D"])
     plt.show()
 
 def similarity_analysis(X,M,method='cor'):
@@ -228,7 +229,6 @@ if __name__ == "__main__":
 
 
     
+    # matrix_plot(dataset)
 
-
-
-
+    pca(X, age, MFI)
