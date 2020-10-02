@@ -193,15 +193,7 @@ def data_analysis(dataset):
     correlation_plot(d)
         
     #return X, C,y
-    
-    
-    
-def visual_data(dataset):
-    
-    df = dataset[dataset.columns[1:-1]]
-    box_plot(dataset['Sex'], dataset['Age'], df)
-    matrix_plot(df)
-    
+
     
 if __name__ == "__main__":
     # Import dataset
@@ -232,19 +224,17 @@ if __name__ == "__main__":
     
     ###############################function calling
 
-    # pca(Y, y, MFI)
+
+    #pca(Y, y, MFI)
         
     #pca(X,age, MFIstr)
     
-    #visual_data(dataset)
+    matrix_plot(dataset)
 
     #data_analysis(dataset)
-
-
-
     
     # matrix_plot(dataset)
     
-    temp = np.vstack((X.T,age))
-    X = temp.T
-    pca(X, age, MFIstr)
+    #temp = np.vstack((X.T,age))
+    #X = temp.T
+    #pca(X, age, MFIstr)
