@@ -16,7 +16,7 @@ def pca(Y, y, MFI):
     Y.dtype = np.float
     
     Y = Y - np.ones((len(Y), 1)) * Y.mean(0) # Translate the data to around origin
-    Y = Y / np.ones((len(Y), 1)) * Y.std(0)
+    Y = Y / (np.ones((len(Y), 1)) * Y.std(0))
     U, S, V = linalg.svd(Y, full_matrices=False) # 
 
     rho = S / sum(S)
@@ -35,6 +35,7 @@ def pca(Y, y, MFI):
 
     Shat = np.vstack((np.diag(S[0:K]), np.zeros((L - K, K), float)))
     Vhat = V[0:K, :]
+    print(str(Vhat))
     # PC = np.dot(D,V[:,0:2])
     Xhat = np.dot(U, Shat)
     plt.figure()
@@ -81,11 +82,24 @@ def pca(Y, y, MFI):
     plt.ylabel("PCA #4")
     plt.show()
     
-    v = np.vstack((np.vstack((MFI,y)),Xhat[:,:3].T))
-    df2 = pd.DataFrame(v.T,
-                   columns=['Sex','Age', 'PCA1', 'PCA2', 'PCA3'])
     plt.figure()
-    sns.pairplot(df2,hue = 'Sex')
+    for i in range(len(age)):
+        if MFI[i] == 'M':
+            st = 'o'
+        elif MFI[i] == 'F':
+            st = 'x'
+        else:
+            st = '+'
+        plt.plot(Xhat[i, 0], Xhat[i, 3], st, color=(min(age[i] / 15, 1), 0, max(1 - age[i] / 15, 0)))
+    plt.xlabel("PCA #1")
+    plt.ylabel("PCA #4")
+    plt.show()
+    
+    v = np.vstack((MFI,Xhat[:,:K].T))
+    df2 = pd.DataFrame(v.T,
+                   columns=['Sex','PCA1', 'PCA2', 'PCA3', 'PCA4'])
+    plt.figure()
+    sns.pairplot(df2,hue = 'Sex', palette="Set1", markers=["s", "o", "D"])
     plt.show()
 
     return V
@@ -205,12 +219,12 @@ if __name__ == "__main__":
     # Move this to a function
     Y = np.zeros((len(X), len(X[1]) - 1), float)
     for i in range(len(Y)):
-        for f in range(1, len(Y[i])):
-            Y[i][f - 1] = float(X[i][f])
-
+        for f in range(1, len(Y[i])+1):
+            Y[i][f-1] = float(X[i][f])
+ 
     age = np.zeros(len(y), float)
     for i in range(len(y)):
-        age[i] = float(y[i]) + 1.5
+        age[i] = float(y[i])
 
     MFIstr = X[:, 0]
     MFI, b = c2n.categoric2numeric(X[:, 0])
@@ -230,5 +244,7 @@ if __name__ == "__main__":
 
     
     # matrix_plot(dataset)
-
-    pca(X, age, MFI)
+    
+    temp = np.vstack((X.T,age))
+    X = temp.T
+    pca(X, age, MFIstr)
