@@ -147,18 +147,19 @@ def correlation_plot(d):
       mask = np.zeros_like(corr_data)
       mask[np.triu_indices_from(mask)] = True
       if k==0 or k==2:
-          sns.heatmap(corr_data,mask=mask,xticklabels=attributeNames, yticklabels=attributeNames,square=True,ax=ax[i, j])
+          sns.heatmap(corr_data,mask=mask,xticklabels=attributeNames, yticklabels=attributeNames,square=True,ax=ax[i, j],
+                      vmin=0, vmax=1, cmap="coolwarm",annot=True)
       else:
           sns.heatmap(corr_data,mask=mask,xticklabels=attributeNames, yticklabels=attributeNames,square=True,
-                cbar_kws={'label': 'Correlation'},ax=ax[i, j])
+                cbar_kws={'label': 'Correlation'},ax=ax[i, j],vmin=0, vmax=1, cmap="coolwarm",annot=True)
       #heatmap_plot(d[key])
-      if k==0:
+      #if k==0:
         #ax[i,j].legend(loc='upper right')
-        ax[i,j].set_ylabel('Attribute name')
-      if i==1:
-        ax[i,j].set_xlabel('Attribute name')
-      if j==0:
-          ax[i,j].set_ylabel('Attribute name')
+        #ax[i,j].set_ylabel('Attribute name')
+      #if i==1:
+        #ax[i,j].set_xlabel('Attribute name')
+      #if j==0:
+          #ax[i,j].set_ylabel('Attribute name')
       ax[i,j].set_title(key,size=12)
       k+=1
 
@@ -194,6 +195,18 @@ def data_analysis(dataset):
         
     #return X, C,y
 
+
+def outlier(df):
+    df.drop(df[df['Height']>0.4].index,inplace=True)
+    return df
+        
+    
+#def visual_data(dataset):
+    
+    #df = dataset[dataset.columns[1:-1]]
+    #box_plot(dataset['Sex'], dataset['Age'], df)
+    #matrix_plot(df)
+    
     
 if __name__ == "__main__":
     # Import dataset
@@ -202,6 +215,12 @@ if __name__ == "__main__":
     # Create a age column from the Rings column + 1.5
     dataset['Age'] = dataset['Rings'] + 1.5
     dataset.drop('Rings', axis=1, inplace=True)
+    
+    #matrix_plot(dataset)
+    
+    #remove outliers
+    dataset=outlier(dataset)
+    #dataset.iloc[:,0:-1].boxplot()
     
 ############# put this in a pca function that manages the pca analysis??????????????????  
     X = dataset.iloc[:, :-1].values
@@ -224,17 +243,19 @@ if __name__ == "__main__":
     
     ###############################function calling
 
-
-    #pca(Y, y, MFI)
+    # pca(Y, y, MFI)
         
     #pca(X,age, MFIstr)
     
-    matrix_plot(dataset)
+    #visual_data(dataset)
 
     #data_analysis(dataset)
+
+
+
     
     # matrix_plot(dataset)
     
     #temp = np.vstack((X.T,age))
-    #X = temp.T
+   # X = temp.T
     #pca(X, age, MFIstr)
