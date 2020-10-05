@@ -225,12 +225,11 @@ if __name__ == "__main__":
     dataset['Age'] = dataset['Rings'] + 1.5
     dataset.drop('Rings', axis=1, inplace=True)
 
-    # matrix_plot(dataset)
-
-    data_analysis(dataset)
-
+    matrix_plot(dataset)
     # Remove outliers
-    # dataset = outlier(dataset)
+    dataset = outlier(dataset)
+    
+    data_analysis(dataset)
 
     # PCA
     X = dataset.iloc[:, :-1].values
