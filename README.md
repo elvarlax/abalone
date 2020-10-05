@@ -1,3 +1,5 @@
+![Abalone](abalone.png)
+
 # Abalone
 Predicting the age of abalone from physical measurements
 

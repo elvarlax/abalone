@@ -226,7 +226,8 @@ if __name__ == "__main__":
     dataset.drop('Rings', axis=1, inplace=True)
 
     matrix_plot(dataset)
-    # Remove outliers
+    
+	# Remove outliers
     dataset = outlier(dataset)
     
     data_analysis(dataset)
