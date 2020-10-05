@@ -126,6 +126,8 @@ def similarity_analysis(X, M, method='cor'):
     sim_mat = np.zeros((M, M), float)
     for j in range(M):
         for i in range(M):
+            # If it does not work you need to comment 
+            # "keepdims=True" argument in the mean() function in stats.py
             sim_mat[i, j] = sim.similarity(X.iloc[:, i], X.iloc[:, j], method)
     return sim_mat
 
