@@ -216,7 +216,7 @@ def outlier(df):
     df.drop(df[df['Height'] > 0.4].index, inplace=True)
     return df
 
-"""
+
 if __name__ == "__main__":
     # Import dataset
     dataset = pd.read_csv('abalone.csv')
@@ -256,4 +256,3 @@ if __name__ == "__main__":
 
     # Calling the PCA
     pca(X, age, MFIstr)
-"""
