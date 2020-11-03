@@ -24,10 +24,10 @@ def knn(x_train, y_train, x_test, y_test, parameter):
 
 
 def neural_network_train(x_train, y_train, x_test, y_test, parameter):
-    X_train = torch.Tensor(x_train)
-    Y_train = torch.Tensor(y_train)
-    X_test = torch.Tensor(x_train)
-    Y_test = torch.Tensor(y_train)
+    x_train = torch.Tensor(x_train)
+    y_train = torch.Tensor(y_train)
+    x_test = torch.Tensor(x_train)
+    y_test = torch.Tensor(y_train)
             
     global model, loss_fn
 
