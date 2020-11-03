@@ -57,7 +57,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, param):
                                                        n_replicates=1,
                                                        max_iter=max_iter)
 
-    y_test_est = net(X_test)  # activation of final note, i.e. prediction of network
+    y_test_est = net(x_test)  # activation of final note, i.e. prediction of network
     # y_test_est = (y_sigmoid > .5)#._cast_uint8_t() # threshold output of sigmoidal function
     # Determine errors and error rate
     # e = (y_test_est != Y_test)
