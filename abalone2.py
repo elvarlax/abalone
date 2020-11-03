@@ -33,6 +33,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
 
     model = lambda: torch.nn.Sequential(
         torch.nn.Linear(10, parameter),  # M features to H hiden units
+        torch.nn.Linear(9, parameter),  # M features to H hiden units
         # 1st transfer function, either Tanh or ReLU:
         torch.nn.Tanh(),  # torch.nn.ReLU(),
         torch.nn.Linear(parameter, 1),  # H hidden units to 1 output neuron
@@ -45,9 +46,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
 
     max_iter = 10000
 
-    if len(y_train) != 1:
-        y_train = y_train.T
-
+    Y_train=Y_train.unsqueeze(1)
     net, final_loss, learning_curve = train_neural_net(model,
                                                        loss_fn,
                                                        X=x_train,
@@ -72,9 +71,10 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
 
 def cross_validation(X, Y, model1, param, K):
     CV = model_selection.KFold(K, shuffle=True)
-    er_gen = zeros(len(param),1)
-    for i in range(len(param)-1):
-        err = zeros(K,1)
+    er_gen = np.zeros(len(param))
+    for i in range(0,len(param)):
+        err = np.zeros(K)
+        print(str(param[i]))
         for k, (train_index, test_index) in enumerate(CV.split(X, X)):
             X_train = X[train_index, :]
             Y_train = Y[train_index]
@@ -90,6 +90,7 @@ def cross_validation(X, Y, model1, param, K):
         #biases = [net[i].bias.data.numpy() for i in [0, 2]]
         #tf = [str(net[i]) for i in [1, 2]]
         #draw_neural_net(weights, biases, tf)
+    return param(np.argmin(er_gen))
 
 
 def column_transformer(parameter, x):
@@ -113,16 +114,18 @@ if __name__ == "__main__":
     Xtemp = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
 
+
+    Xtemp = column_transformer([0], Xtemp)
+    
     X = np.zeros((len(Xtemp), len(Xtemp[1]) - 1), float)
     for i in range(len(X)):
         for f in range(1, len(X[i]) + 1):
             X[i][f - 1] = float(Xtemp[i][f])
-
-    X = column_transformer([0], Xtemp)
 
     # Convert age to float
     age = np.zeros(len(Y), float)
     for i in range(len(Y)):
         age[i] = float(Y[i]) / max(Y)
 
-    cross_validation(X, age, neural_network_train, 6, 3)
+    i = cross_validation(X, age, neural_network_train, [5,6,7], 3)
+    print(i)
