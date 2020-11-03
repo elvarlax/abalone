@@ -24,8 +24,6 @@ def knn(x_train, y_train, x_test, y_test, parameter):
 
 
 def neural_network_train(x_train, y_train, x_test, y_test, parameter):
-def neural_network_train(x_train, y_train, x_test, y_test, parameter):
-    
     X_train = torch.Tensor(x_train)
     Y_train = torch.Tensor(y_train)
     X_test = torch.Tensor(x_train)
@@ -85,8 +83,8 @@ def cross_validation(X, Y, model1, param, K):
         
             # Train the network
             # error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
-            err(k) = model1(X_train, Y_train, X_test, Y_test, param(i))
-        er_gen(i) = sum(err)/K
+            err[k] = model1(X_train, Y_train, X_test, Y_test, param[i])
+        er_gen[i] = sum(err)/K
 
         #weights = [net[i].weight.data.numpy().T for i in [0, 2]]
         #biases = [net[i].bias.data.numpy() for i in [0, 2]]
