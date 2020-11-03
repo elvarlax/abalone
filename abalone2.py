@@ -89,7 +89,7 @@ def cross_validation(X, Y, model1, param, K):
         #biases = [net[i].bias.data.numpy() for i in [0, 2]]
         #tf = [str(net[i]) for i in [1, 2]]
         #draw_neural_net(weights, biases, tf)
-    return param(np.argmin(er_gen))
+    return param[np.argmin(er_gen)]
 
 
 def column_transformer(parameter, x):
