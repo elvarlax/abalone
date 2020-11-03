@@ -32,7 +32,6 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
     global model, loss_fn
 
     model = lambda: torch.nn.Sequential(
-        torch.nn.Linear(10, parameter),  # M features to H hiden units
         torch.nn.Linear(9, parameter),  # M features to H hiden units
         # 1st transfer function, either Tanh or ReLU:
         torch.nn.Tanh(),  # torch.nn.ReLU(),
