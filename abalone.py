@@ -224,6 +224,12 @@ def column_transformer(parameter, x):
     ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), parameter)], remainder='passthrough')
     x = np.array(ct.fit_transform(x))
     return x
+    
+    
+"""
+if __name__ == "__main__":
+    # Import dataset
+    dataset = pd.read_csv('abalone.csv')
 
 
 def feature_scale(x_train, x_test):
@@ -231,3 +237,28 @@ def feature_scale(x_train, x_test):
     x_train = sc.fit_transform(x_train)
     x_test = sc.transform(x_test)
     return x_train, x_test
+
+    # PCA
+    X = dataset.iloc[:, :-1].values
+    y = dataset.iloc[:, -1].values
+
+    # Convert data to float
+    Y = np.zeros((len(X), len(X[1]) - 1), float)
+    for i in range(len(Y)):
+        for f in range(1, len(Y[i]) + 1):
+            Y[i][f - 1] = float(X[i][f])
+
+    # Convert age to float
+    age = np.zeros(len(y), float)
+    for i in range(len(y)):
+        age[i] = float(y[i])
+
+    # One of K Encoding
+    MFIstr = X[:, 0]
+    MFI, b = c2n.categoric2numeric(X[:, 0])
+    X = np.hstack((MFI, Y))
+    temp = np.vstack((X.T, age))
+    X = temp.T
+
+    # Calling the PCA
+    pca(X, age, MFIstr)
