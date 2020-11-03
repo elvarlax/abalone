@@ -20,6 +20,7 @@ def knn(x_train, y_train, x_test, y_test, parameter):
     # Predicting the Test set results
     y_pred = classifier.predict(x_test)
     print(np.concatenate((y_pred.reshape(len(y_pred), 1), y_test.reshape(len(y_test), 1)), 1))
+    return accuracy_score(y_test, y_pred)
 
 
 def neural_network_train(x_train, y_train, x_test, y_test, parameter):
