@@ -59,23 +59,25 @@ def NeuralNetworkTrain(X_train,Y_train,X_test,Y_test,parameter1):
 def CrossValidation(X,Y,model1,param1,K):  
     
     CV = model_selection.KFold(K,shuffle=True)
-    for  k, (train_index, test_index) in enumerate(CV.split(X,X)):
+    for p in param1:
+        for  k, (train_index, test_index) in enumerate(CV.split(X,X)):
+            
+            X_train = torch.Tensor(X[train_index,:] )
+            Y_train = torch.Tensor(Y[train_index] )
+            X_test = torch.Tensor(X[test_index,:] )
+            Y_test = torch.Tensor(Y[test_index] )
         
-        X_train = torch.Tensor(X[train_index,:] )
-        Y_train = torch.Tensor(Y[train_index] )
-        X_test = torch.Tensor(X[test_index,:] )
-        Y_test = torch.Tensor(Y[test_index] )
-    
-        # Train the network
-        #error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
-        er = model1(X_train, Y_train,X_test, Y_test,param1)
-        print(er)
+            # Train the network
+            #error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
+            er = model1(X_train, Y_train,X_test, Y_test,p)
+            print(er)
         
-        weights = [net[i].weight.data.numpy().T for i in [0,2]]
-        biases = [net[i].bias.data.numpy() for i in [0,2]]
-        tf =  [str(net[i]) for i in [1,2]]
-        draw_neural_net(weights, biases, tf)
+        #weights = [net[i].weight.data.numpy().T for i in [0,2]]
+        #biases = [net[i].bias.data.numpy() for i in [0,2]]
+        #tf =  [str(net[i]) for i in [1,2]]
+        #draw_neural_net(weights, biases, tf)
         
+# Testing
 if __name__ == "__main__":
     dataset = pd.read_csv('abalone.csv')
     dataset['Age'] = dataset['Rings'] + 1.5
