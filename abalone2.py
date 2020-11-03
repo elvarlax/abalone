@@ -45,7 +45,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
 
     max_iter = 10000
 
-    Y_train=Y_train.unsqueeze(1)
+    y_train=y_train.unsqueeze(1)
     net, final_loss, learning_curve = train_neural_net(model,
                                                        loss_fn,
                                                        X=x_train,
