@@ -12,6 +12,12 @@ from toolbox_02450 import train_neural_net, draw_neural_net, visualize_decision_
 
 
 def neural_network_train(X_train, Y_train, X_test, Y_test, parameter1):
+    
+    X_train = torch.Tensor(X_train)
+    Y_train = torch.Tensor(Y_train)
+    X_test = torch.Tensor(X_train)
+    Y_test = torch.Tensor(Y_train)
+            
     global model, loss_fn
 
     model = lambda: torch.nn.Sequential(
@@ -56,20 +62,20 @@ def neural_network_train(X_train, Y_train, X_test, Y_test, parameter1):
 def cross_validation(X, Y, model1, param1, K):
     CV = model_selection.KFold(K, shuffle=True)
     for k, (train_index, test_index) in enumerate(CV.split(X, X)):
-        X_train = torch.Tensor(X[train_index, :])
-        Y_train = torch.Tensor(Y[train_index])
-        X_test = torch.Tensor(X[test_index, :])
-        Y_test = torch.Tensor(Y[test_index])
+        X_train = X[train_index, :]
+        Y_train = Y[train_index]
+        X_test = X[test_index, :]
+        Y_test = Y[test_index]
 
         # Train the network
         # error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
         er = model1(X_train, Y_train, X_test, Y_test, param1)
         print(er)
 
-        weights = [net[i].weight.data.numpy().T for i in [0, 2]]
-        biases = [net[i].bias.data.numpy() for i in [0, 2]]
-        tf = [str(net[i]) for i in [1, 2]]
-        draw_neural_net(weights, biases, tf)
+        #weights = [net[i].weight.data.numpy().T for i in [0, 2]]
+        #biases = [net[i].bias.data.numpy() for i in [0, 2]]
+        #tf = [str(net[i]) for i in [1, 2]]
+        #draw_neural_net(weights, biases, tf)
 
 
 def column_transformer(parameter, x):
