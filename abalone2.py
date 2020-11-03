@@ -4,7 +4,8 @@ import pandas as pd
 import torch
 from sklearn import model_selection
 from sklearn.compose import ColumnTransformer
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
@@ -14,20 +15,23 @@ from toolbox_02450 import train_neural_net
 def knn(x_train, y_train, x_test, y_test, param):
     # Training the K-NN model on the Training set
     # Euclidean distance between neighbors of 5
-    classifier = KNeighborsClassifier(n_neighbors=5, metric='minkowski', p=2)
+    classifier = KNeighborsClassifier(n_neighbors=param, metric='minkowski', p=2)
     classifier.fit(x_train, y_train)
 
     # Predicting the Test set results
     y_pred = classifier.predict(x_test)
+
     print(np.concatenate((y_pred.reshape(len(y_pred), 1), y_test.reshape(len(y_test), 1)), 1))
+    print(confusion_matrix(y_test, y_pred))
+
     return accuracy_score(y_test, y_pred)
 
 
 def neural_network_train(x_train, y_train, x_test, y_test, param):
     x_train = torch.Tensor(x_train)
     y_train = torch.Tensor(y_train)
-    x_test = torch.Tensor(x_train)
-    y_test = torch.Tensor(y_train)
+    x_test = torch.Tensor(x_test)
+    y_test = torch.Tensor(y_test)
 
     global model, loss_fn
 
@@ -53,7 +57,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, param):
                                                        n_replicates=1,
                                                        max_iter=max_iter)
 
-    y_test_est = net(x_test)  # activation of final note, i.e. prediction of network
+    y_test_est = net(X_test)  # activation of final note, i.e. prediction of network
     # y_test_est = (y_sigmoid > .5)#._cast_uint8_t() # threshold output of sigmoidal function
     # Determine errors and error rate
     # e = (y_test_est != Y_test)
@@ -75,14 +79,14 @@ def cross_validation(X, Y, model, param, K):
         err = np.zeros(K)
         print(str(param[i]))
         for k, (train_index, test_index) in enumerate(CV.split(X, X)):
-            X_train = X[train_index, :]
-            Y_train = Y[train_index]
-            X_test = X[test_index, :]
-            Y_test = Y[test_index]
+            x_train = X[train_index, :]
+            y_train = Y[train_index]
+            x_test = X[test_index, :]
+            y_test = Y[test_index]
 
             # Train the network
             # error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
-            err[k] = model(X_train, Y_train, X_test, Y_test, param[i])
+            err[k] = model(x_train, y_train, x_test, y_test, param[i])
         er_gen[i] = sum(err) / K
 
         # weights = [net[i].weight.data.numpy().T for i in [0, 2]]
@@ -106,19 +110,35 @@ def feature_scale(x_train, x_test):
 
 
 if __name__ == "__main__":
+    # Importing the dataset
     dataset = pd.read_csv('abalone.csv')
+    X = dataset.iloc[:, :-1].values
+    Y = dataset.iloc[:, -1].values
+
+    # Create a age column from the Rings column + 1.5
     dataset['Age'] = dataset['Rings'] + 1.5
     dataset.drop('Rings', axis=1, inplace=True)
 
-    Xtemp = dataset.iloc[:, :-1].values
-    Y = dataset.iloc[:, -1].values
+    # Column transform Sex column
+    X = column_transformer([0], X)
 
-    Xtemp = column_transformer([0], Xtemp)
+    # Splitting the dataset into the Training set and Test set
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.25, random_state=0)
 
-    X = np.zeros((len(Xtemp), len(Xtemp[1]) - 1), float)
+    # Feature scale X_train and X_test
+    X_train, X_test = feature_scale(X_train, X_test)
+
+    # Training the K-NN model on the Training set
+    # Euclidean distance between neighbors of five
+    knn(X_train, Y_train, X_test, Y_test, 5)
+
+    X_ann = dataset.iloc[:, :-1].values
+    X_ann = column_transformer([0], X_ann)
+    X = np.zeros((len(X_ann), len(X_ann[1]) - 1), float)
+
     for i in range(len(X)):
         for f in range(1, len(X[i]) + 1):
-            X[i][f - 1] = float(Xtemp[i][f])
+            X[i][f - 1] = float(X_ann[i][f])
 
     # Convert age to float
     age = np.zeros(len(Y), float)
