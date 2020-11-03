@@ -1,17 +1,17 @@
-import torch
-import numpy as np
-from sklearn import model_selection
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+import torch
+from sklearn import model_selection
 from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import confusion_matrix, accuracy_score
-from toolbox_02450 import train_neural_net, draw_neural_net, visualize_decision_boundary
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+
+from toolbox_02450 import train_neural_net
 
 
-def knn(x_train, y_train, x_test, y_test, parameter):
+def knn(x_train, y_train, x_test, y_test, param):
     # Training the K-NN model on the Training set
     # Euclidean distance between neighbors of 5
     classifier = KNeighborsClassifier(n_neighbors=5, metric='minkowski', p=2)
@@ -23,7 +23,7 @@ def knn(x_train, y_train, x_test, y_test, parameter):
     return accuracy_score(y_test, y_pred)
 
 
-def neural_network_train(x_train, y_train, x_test, y_test, parameter):
+def neural_network_train(x_train, y_train, x_test, y_test, param):
     x_train = torch.Tensor(x_train)
     y_train = torch.Tensor(y_train)
     x_test = torch.Tensor(x_train)
@@ -32,10 +32,10 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
     global model, loss_fn
 
     model = lambda: torch.nn.Sequential(
-        torch.nn.Linear(9, parameter),  # M features to H hiden units
+        torch.nn.Linear(9, param),  # M features to H hiden units
         # 1st transfer function, either Tanh or ReLU:
         torch.nn.Tanh(),  # torch.nn.ReLU(),
-        torch.nn.Linear(parameter, 1),  # H hidden units to 1 output neuron
+        torch.nn.Linear(param, 1),  # H hidden units to 1 output neuron
         # torch.nn.Sigmoid() # final tranfer function
     )
 
@@ -68,7 +68,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
     return final_loss
 
 
-def cross_validation(X, Y, model1, param, K):
+def cross_validation(X, Y, model, param, K):
     CV = model_selection.KFold(K, shuffle=True)
     er_gen = np.zeros(len(param))
     for i in range(0, len(param)):
@@ -82,7 +82,7 @@ def cross_validation(X, Y, model1, param, K):
 
             # Train the network
             # error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
-            err[k] = model1(X_train, Y_train, X_test, Y_test, param[i])
+            err[k] = model(X_train, Y_train, X_test, Y_test, param[i])
         er_gen[i] = sum(err) / K
 
         # weights = [net[i].weight.data.numpy().T for i in [0, 2]]
@@ -92,10 +92,10 @@ def cross_validation(X, Y, model1, param, K):
     return param[np.argmin(er_gen)]
 
 
-def column_transformer(parameter, x):
-    ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), parameter)], remainder='passthrough')
-    x = np.array(ct.fit_transform(x))
-    return x
+def column_transformer(param, X):
+    ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), param)], remainder='passthrough')
+    X = np.array(ct.fit_transform(X))
+    return X
 
 
 def feature_scale(x_train, x_test):
