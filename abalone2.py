@@ -13,10 +13,10 @@ from toolbox_02450 import train_neural_net, draw_neural_net, visualize_decision_
 
 def neural_network_train(x_train, y_train, x_test, y_test, parameter):
     
-    X_train = torch.Tensor(X_train)
-    Y_train = torch.Tensor(Y_train)
-    X_test = torch.Tensor(X_train)
-    Y_test = torch.Tensor(Y_train)
+    X_train = torch.Tensor(x_train)
+    Y_train = torch.Tensor(y_train)
+    X_test = torch.Tensor(x_train)
+    Y_test = torch.Tensor(y_train)
             
     global model, loss_fn
 
