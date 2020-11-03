@@ -11,6 +11,18 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from toolbox_02450 import train_neural_net, draw_neural_net, visualize_decision_boundary
 
 
+def knn(x_train, y_train, x_test, y_test, parameter):
+    # Training the K-NN model on the Training set
+    # Euclidean distance between neighbors of 5
+    classifier = KNeighborsClassifier(n_neighbors=5, metric='minkowski', p=2)
+    classifier.fit(x_train, y_train)
+
+    # Predicting the Test set results
+    y_pred = classifier.predict(x_test)
+    print(np.concatenate((y_pred.reshape(len(y_pred), 1), y_test.reshape(len(y_test), 1)), 1))
+
+
+def neural_network_train(x_train, y_train, x_test, y_test, parameter):
 def neural_network_train(x_train, y_train, x_test, y_test, parameter):
     
     X_train = torch.Tensor(x_train)
@@ -21,10 +33,10 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
     global model, loss_fn
 
     model = lambda: torch.nn.Sequential(
-        torch.nn.Linear(10, parameter1),  # M features to H hiden units
+        torch.nn.Linear(10, parameter),  # M features to H hiden units
         # 1st transfer function, either Tanh or ReLU:
         torch.nn.Tanh(),  # torch.nn.ReLU(),
-        torch.nn.Linear(parameter1, 1),  # H hidden units to 1 output neuron
+        torch.nn.Linear(parameter, 1),  # H hidden units to 1 output neuron
         # torch.nn.Sigmoid() # final tranfer function
     )
 
@@ -34,17 +46,17 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
 
     max_iter = 10000
 
-    if len(Y_train) != 1:
-        Y_train = Y_train.T
+    if len(y_train) != 1:
+        y_train = y_train.T
 
     net, final_loss, learning_curve = train_neural_net(model,
                                                        loss_fn,
-                                                       X=X_train,
-                                                       y=Y_train,
+                                                       X=x_train,
+                                                       y=y_train,
                                                        n_replicates=1,
                                                        max_iter=max_iter)
 
-    y_test_est = net(X_test)  # activation of final note, i.e. prediction of network
+    y_test_est = net(x_test)  # activation of final note, i.e. prediction of network
     # y_test_est = (y_sigmoid > .5)#._cast_uint8_t() # threshold output of sigmoidal function
     # Determine errors and error rate
     # e = (y_test_est != Y_test)
@@ -52,7 +64,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
 
     y_test_est = y_test_est.detach().numpy()
     plt.figure()
-    plt.plot(Y_test, 'ok')
+    plt.plot(y_test, 'ok')
     plt.plot(y_test_est, 'or')
     plt.show()
 
