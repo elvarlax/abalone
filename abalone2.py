@@ -11,7 +11,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from toolbox_02450 import train_neural_net, draw_neural_net, visualize_decision_boundary
 
 
-def neural_network_train(X_train, Y_train, X_test, Y_test, parameter1):
+def neural_network_train(x_train, y_train, x_test, y_test, parameter):
     
     X_train = torch.Tensor(X_train)
     Y_train = torch.Tensor(Y_train)
@@ -59,18 +59,21 @@ def neural_network_train(X_train, Y_train, X_test, Y_test, parameter1):
     return final_loss
 
 
-def cross_validation(X, Y, model1, param1, K):
+def cross_validation(X, Y, model1, param, K):
     CV = model_selection.KFold(K, shuffle=True)
-    for k, (train_index, test_index) in enumerate(CV.split(X, X)):
-        X_train = X[train_index, :]
-        Y_train = Y[train_index]
-        X_test = X[test_index, :]
-        Y_test = Y[test_index]
-
-        # Train the network
-        # error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
-        er = model1(X_train, Y_train, X_test, Y_test, param1)
-        print(er)
+    er_gen = zeros(len(param),1)
+    for i in range(len(param)-1):
+        err = zeros(K,1)
+        for k, (train_index, test_index) in enumerate(CV.split(X, X)):
+            X_train = X[train_index, :]
+            Y_train = Y[train_index]
+            X_test = X[test_index, :]
+            Y_test = Y[test_index]
+        
+            # Train the network
+            # error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
+            err(k) = model1(X_train, Y_train, X_test, Y_test, param(i))
+        er_gen(i) = sum(err)/K
 
         #weights = [net[i].weight.data.numpy().T for i in [0, 2]]
         #biases = [net[i].bias.data.numpy() for i in [0, 2]]
