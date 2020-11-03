@@ -3,12 +3,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import scipy.linalg as linalg
+from IPython import get_ipython
 import similarity as sim
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import confusion_matrix, accuracy_score
 
 
 def pca(Y, y, MFI):
@@ -129,7 +125,7 @@ def similarity_analysis(X, M, method='cor'):
     sim_mat = np.zeros((M, M), float)
     for j in range(M):
         for i in range(M):
-            # If it does not work you need to comment 
+            # If it does not work you need to comment
             # "keepdims=True" argument in the mean() function in stats.py
             sim_mat[i, j] = sim.similarity(X.iloc[:, i], X.iloc[:, j], method)
     return sim_mat
@@ -218,47 +214,3 @@ def data_analysis(dataset):
 def outlier(df):
     df.drop(df[df['Height'] > 0.4].index, inplace=True)
     return df
-
-
-def column_transformer(parameter, x):
-    ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), parameter)], remainder='passthrough')
-    x = np.array(ct.fit_transform(x))
-    return x
-    
-    
-"""
-if __name__ == "__main__":
-    # Import dataset
-    dataset = pd.read_csv('abalone.csv')
-
-
-def feature_scale(x_train, x_test):
-    sc = StandardScaler()
-    x_train = sc.fit_transform(x_train)
-    x_test = sc.transform(x_test)
-    return x_train, x_test
-
-    # PCA
-    X = dataset.iloc[:, :-1].values
-    y = dataset.iloc[:, -1].values
-
-    # Convert data to float
-    Y = np.zeros((len(X), len(X[1]) - 1), float)
-    for i in range(len(Y)):
-        for f in range(1, len(Y[i]) + 1):
-            Y[i][f - 1] = float(X[i][f])
-
-    # Convert age to float
-    age = np.zeros(len(y), float)
-    for i in range(len(y)):
-        age[i] = float(y[i])
-
-    # One of K Encoding
-    MFIstr = X[:, 0]
-    MFI, b = c2n.categoric2numeric(X[:, 0])
-    X = np.hstack((MFI, Y))
-    temp = np.vstack((X.T, age))
-    X = temp.T
-
-    # Calling the PCA
-    pca(X, age, MFIstr)
