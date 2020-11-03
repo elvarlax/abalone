@@ -28,7 +28,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
     y_train = torch.Tensor(y_train)
     x_test = torch.Tensor(x_train)
     y_test = torch.Tensor(y_train)
-            
+
     global model, loss_fn
 
     model = lambda: torch.nn.Sequential(
@@ -45,7 +45,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
 
     max_iter = 10000
 
-    y_train=y_train.unsqueeze(1)
+    y_train = y_train.unsqueeze(1)
     net, final_loss, learning_curve = train_neural_net(model,
                                                        loss_fn,
                                                        X=x_train,
@@ -71,7 +71,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, parameter):
 def cross_validation(X, Y, model1, param, K):
     CV = model_selection.KFold(K, shuffle=True)
     er_gen = np.zeros(len(param))
-    for i in range(0,len(param)):
+    for i in range(0, len(param)):
         err = np.zeros(K)
         print(str(param[i]))
         for k, (train_index, test_index) in enumerate(CV.split(X, X)):
@@ -79,16 +79,16 @@ def cross_validation(X, Y, model1, param, K):
             Y_train = Y[train_index]
             X_test = X[test_index, :]
             Y_test = Y[test_index]
-        
+
             # Train the network
             # error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
             err[k] = model1(X_train, Y_train, X_test, Y_test, param[i])
-        er_gen[i] = sum(err)/K
+        er_gen[i] = sum(err) / K
 
-        #weights = [net[i].weight.data.numpy().T for i in [0, 2]]
-        #biases = [net[i].bias.data.numpy() for i in [0, 2]]
-        #tf = [str(net[i]) for i in [1, 2]]
-        #draw_neural_net(weights, biases, tf)
+        # weights = [net[i].weight.data.numpy().T for i in [0, 2]]
+        # biases = [net[i].bias.data.numpy() for i in [0, 2]]
+        # tf = [str(net[i]) for i in [1, 2]]
+        # draw_neural_net(weights, biases, tf)
     return param[np.argmin(er_gen)]
 
 
@@ -113,9 +113,8 @@ if __name__ == "__main__":
     Xtemp = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
 
-
     Xtemp = column_transformer([0], Xtemp)
-    
+
     X = np.zeros((len(Xtemp), len(Xtemp[1]) - 1), float)
     for i in range(len(X)):
         for f in range(1, len(X[i]) + 1):
@@ -126,5 +125,5 @@ if __name__ == "__main__":
     for i in range(len(Y)):
         age[i] = float(Y[i]) / max(Y)
 
-    i = cross_validation(X, age, neural_network_train, [5,6,7], 3)
+    i = cross_validation(X, age, neural_network_train, [5, 6, 7], 3)
     print(i)
