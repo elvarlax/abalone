@@ -4,7 +4,7 @@ import pandas as pd
 import torch
 from sklearn import model_selection
 from sklearn.compose import ColumnTransformer
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
@@ -20,9 +20,6 @@ def knn(x_train, y_train, x_test, y_test, param):
 
     # Predicting the Test set results
     y_pred = classifier.predict(x_test)
-
-    print(np.concatenate((y_pred.reshape(len(y_pred), 1), y_test.reshape(len(y_test), 1)), 1))
-    print(confusion_matrix(y_test, y_pred))
 
     return accuracy_score(y_test, y_pred)
 
@@ -130,7 +127,7 @@ if __name__ == "__main__":
 
     # Training the K-NN model on the Training set
     # Euclidean distance between neighbors of five
-    knn(X_train, Y_train, X_test, Y_test, 5)
+    print("KNN Accuracy: {}\n".format(knn(X_train, Y_train, X_test, Y_test, 5)))
 
     X_ann = dataset.iloc[:, :-1].values
     X_ann = column_transformer([0], X_ann)
@@ -145,5 +142,4 @@ if __name__ == "__main__":
     for i in range(len(Y)):
         age[i] = float(Y[i]) / max(Y)
 
-    i = cross_validation(X, age, neural_network_train, [5, 6, 7], 3)
-    print(i)
+    print(cross_validation(X, age, neural_network_train, [5, 6, 7], 3))
