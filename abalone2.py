@@ -264,6 +264,31 @@ def feature_scale(x):
     x_trans = sc.fit_transform(x)
     return x_trans
 
+def significant(z,alpha,method):
+    n=len(z)
+    zhat=np.mean(z)
+    sigma=1/(n*(n-1))*sum((z-zhat)**2)
+    if method=="1sided":
+        #zstar=t.interval(1-alpha, len(z)-1, loc=0, scale=sigma)[1]
+        p=1-t.cdf(abs(zhat), len(z)-1, loc=0, scale=np.sqrt(sigma))
+        print("The p-value is ",p)
+        if p>alpha:
+            print("H0 cannot be rejected")
+        if p<alpha:
+            if zhat>0:
+                print("H0 rejected and H1 (mean(z)>0) accepted with "+str(1-alpha)+" confidence level")
+            else:
+                print("H0 rejected and H1 (mean(z)<0)accepted with "+str(1-alpha)+" confidence level")
+    if method=="2sided":
+        #tstar=t.interval(1-alpha, len(z)-1, loc=0, scale=sigma)[1]
+        p=1-t.cdf(zhat, len(z)-1, loc=0, scale=sigma)
+        print("The p-value is ",p)
+        if abs(p)>alpha/2:
+            print("H0 cannot be rejected")
+        if p<0.05:
+            print(r"H0 rejected and H1 (mean(z) not 0) accepted with {} confidence level".format(str(1+alpha)))
+
+
 if __name__ == "__main__":
     # Importing the dataset
     plt.close(fig='all')
@@ -303,3 +328,4 @@ if __name__ == "__main__":
     #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
     
     methodbest, err = cross_validation(X_float,Y_float,models,["reg_baseline","lin","ann"],4)
+    significant(err[:,0]-err[:,1],0.05,"1sided")
