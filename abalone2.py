@@ -178,10 +178,10 @@ def neural_network_train(x_train, y_train, x_test, y_test, param):
     y_test_est_n = y_test_est.detach().numpy()
     y_test = y_test.unsqueeze(1)
     loss = loss_fn(y_test, y_test_est)
-    plt.figure()
-    plt.plot(y_test, 'ok')
-    plt.plot(y_test_est_n, 'or')
-    plt.show()
+    #plt.figure()
+    #plt.plot(y_test, 'ok')
+    #plt.plot(y_test_est_n, 'or')
+    #plt.show()
 
     return loss
 
@@ -206,7 +206,11 @@ def cross_validation(X, Y, model, param, K):
         # draw_neural_net(weights, biases, tf)
     er_gen = np.mean(err, 0)
     print(err)
-    return param[np.argmin(er_gen)]
+    print(param[np.argmin(er_gen)])
+    plt.figure()
+    plt.plot(er_gen, 'ok')
+    plt.show()
+    return param[np.argmin(er_gen)], err
 
 
 def baseline_reg(y_train, y_test):
@@ -226,7 +230,7 @@ def baseline_class(y_train, y_test):
 def models(x_train, y_train, x_test, y_test, model_indices):
     if model_indices == "ann":
         model = neural_network_train
-        param = (5, 7, 9)
+        param = (3, 4, 5, 7, 9)
     elif model_indices == "knn":
         param = (1, 5, 10)
         chosen_k = [knn(x_train, y_train, k) - 1 for k in param]
@@ -259,7 +263,6 @@ def feature_scale(x):
     sc = StandardScaler()
     x_trans = sc.fit_transform(x)
     return x_trans
-
 
 if __name__ == "__main__":
     # Importing the dataset
@@ -295,4 +298,11 @@ if __name__ == "__main__":
 
     reg(np.power(10., range(-10, 9)), X_float, Y_float)
     cross_validation(X_float, Y_class, models, ["class_baseline", "log", "knn"], 10)
-    cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
+        
+    # Training the K-NN model on the Training set
+    # Euclidean distance between neighbors of five
+    #print("KNN Accuracy: {}\n".format(knn(X_train, Y_train, X_test, Y_test, 5)))
+
+    #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
+    
+    methodbest, err = cross_validation(X_float,Y_float,models,["reg_baseline","lin","ann"],4)
