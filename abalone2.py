@@ -5,13 +5,13 @@ import torch
 from sklearn import model_selection
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 from toolbox_02450 import train_neural_net
 
-def lin_reg(x_train,y_train,x_test,y_test):
+
+def lin_reg(x_train, y_train, x_test, y_test):
     N, M = x_train.shape
     x_train = np.concatenate((np.ones((x_train.shape[0],1)),x_train),1)
     x_test = np.concatenate((np.ones((x_test.shape[0],1)),x_test),1)
@@ -19,17 +19,18 @@ def lin_reg(x_train,y_train,x_test,y_test):
     param = np.power(10.,range(-10,9)) 
     opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(x_train, y_train, param, 10)
     # Estimate weights for the optimal value of lambda, on entire training set
-    lambdaI = p* np.eye(M)
-    lambdaI[0,0] = 0 # Do no regularize the bias term
+    lambdaI = p * np.eye(M)
+    lambdaI[0, 0] = 0  # Do no regularize the bias term
     Xty = x_train.T @ y_train
     XtX = x_train.T @ x_train
-    w_rlr = np.linalg.solve(XtX+lambdaI,Xty).squeeze()
+    w_rlr = np.linalg.solve(XtX + lambdaI, Xty).squeeze()
     # Compute mean squared error with regularization with optimal lambda
-    Error_train_rlr = np.square(y_train-x_train @ w_rlr).sum(axis=0)/y_train.shape[0]
-    err = np.square(y_test-x_test @ w_rlr).sum(axis=0)/y_test.shape[0]
-    return p,err
+    Error_train_rlr = np.square(y_train - x_train @ w_rlr).sum(axis=0) / y_train.shape[0]
+    err = np.square(y_test - x_test @ w_rlr).sum(axis=0) / y_test.shape[0]
+    return p, err
 
-def rlr_validate(X,y,lambdas,cvf=10):
+
+def rlr_validate(X, y, lambdas, cvf=10):
     ''' Validate regularized linear regression model using 'cvf'-fold cross validation.
         Find the optimal lambda (minimizing validation error) from 'lambdas' list.
         The loss function computed as mean squared error on validation set (MSE).
@@ -53,60 +54,62 @@ def rlr_validate(X,y,lambdas,cvf=10):
     '''
     CV = model_selection.KFold(cvf, shuffle=True)
     M = X.shape[1]
-    w = np.empty((M,cvf,len(lambdas)))
-    train_error = np.empty((cvf,len(lambdas)))
-    test_error = np.empty((cvf,len(lambdas)))
+    w = np.empty((M, cvf, len(lambdas)))
+    train_error = np.empty((cvf, len(lambdas)))
+    test_error = np.empty((cvf, len(lambdas)))
     f = 0
     y = y.squeeze()
-    for train_index, test_index in CV.split(X,y):
+    for train_index, test_index in CV.split(X, y):
         X_train = X[train_index]
         y_train = y[train_index]
         X_test = X[test_index]
         y_test = y[test_index]
-        
+
         # Standardize the training and set set based on training set moments
-        #mu = np.mean(X_train[:, 1:], 0)
-        #sigma = np.std(X_train[:, 1:], 0)
-        
-        #X_train[:, 1:] = (X_train[:, 1:] - mu) / sigma
-        #X_test[:, 1:] = (X_test[:, 1:] - mu) / sigma
-        
+        # mu = np.mean(X_train[:, 1:], 0)
+        # sigma = np.std(X_train[:, 1:], 0)
+
+        # X_train[:, 1:] = (X_train[:, 1:] - mu) / sigma
+        # X_test[:, 1:] = (X_test[:, 1:] - mu) / sigma
+
         # precompute terms
         Xty = X_train.T @ y_train
         XtX = X_train.T @ X_train
-        for l in range(0,len(lambdas)):
+        for l in range(0, len(lambdas)):
             # Compute parameters for current value of lambda and current CV fold
             # note: "linalg.lstsq(a,b)" is substitue for Matlab's left division operator "\"
             lambdaI = lambdas[l] * np.eye(M)
-            lambdaI[0,0] = 0 # remove bias regularization
-            w[:,f,l] = np.linalg.solve(XtX+lambdaI,Xty).squeeze()
+            lambdaI[0, 0] = 0  # remove bias regularization
+            w[:, f, l] = np.linalg.solve(XtX + lambdaI, Xty).squeeze()
             # Evaluate training and test performance
-            train_error[f,l] = np.power(y_train-X_train @ w[:,f,l].T,2).mean(axis=0)
-            test_error[f,l] = np.power(y_test-X_test @ w[:,f,l].T,2).mean(axis=0)
-    
-        f=f+1
+            train_error[f, l] = np.power(y_train - X_train @ w[:, f, l].T, 2).mean(axis=0)
+            test_error[f, l] = np.power(y_test - X_test @ w[:, f, l].T, 2).mean(axis=0)
 
-    opt_val_err = np.min(np.mean(test_error,axis=0))
-    opt_lambda = lambdas[np.argmin(np.mean(test_error,axis=0))]
-    train_err_vs_lambda = np.mean(train_error,axis=0)
-    test_err_vs_lambda = np.mean(test_error,axis=0)
-    mean_w_vs_lambda = np.squeeze(np.mean(w,axis=1))
-    
+        f = f + 1
+
+    opt_val_err = np.min(np.mean(test_error, axis=0))
+    opt_lambda = lambdas[np.argmin(np.mean(test_error, axis=0))]
+    train_err_vs_lambda = np.mean(train_error, axis=0)
+    test_err_vs_lambda = np.mean(test_error, axis=0)
+    mean_w_vs_lambda = np.squeeze(np.mean(w, axis=1))
+
     return opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda
-    
-        
 
 
-def knn(x_train, y_train, x_test, y_test, param):
+# (X,y,param)
+def knn(x, y, param):
     # Training the K-NN model on the Training set
     # Euclidean distance between neighbors of 5
     classifier = KNeighborsClassifier(n_neighbors=param, metric='minkowski', p=2)
-    classifier.fit(x_train, y_train)
-
+    classifier.fit(x, y)
+    print(classifier.fit(x, y))
     # Predicting the Test set results
-    y_pred = classifier.predict(x_test)
+    y_pred = classifier.predict(x)
+    return accuracy_score(y, y_pred)
 
-    return accuracy_score(y_test, y_pred)
+
+def logistic_regression(x_train, y_train, x_test, y_test, param):
+    pass
 
 
 def neural_network_train(x_train, y_train, x_test, y_test, param):
@@ -190,8 +193,10 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         model = neural_network_train
         param = (5, 7, 9)
     elif model_indices == "knn":
-        model = knn
         param = (1, 5, 10)
+        chosen_k = [knn(x_train, y_train, k) for k in param]
+        err = knn(x_test, y_test, np.argmax(chosen_k))
+        return 1 - err
     elif model_indices == "lin":
         p,err=lin_reg(x_train,y_train,x_test,y_test)
         return err
@@ -213,8 +218,7 @@ def models(x_train, y_train, x_test, y_test, model_indices):
 
 def column_transformer(param, X):
     ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), param)], remainder='passthrough')
-    X = np.array(ct.fit_transform(X))
-    return X
+    return np.array(ct.fit_transform(X))
 
 
 def feature_scale(x):
@@ -239,8 +243,7 @@ if __name__ == "__main__":
     # Column transform Sex column
     X = column_transformer([0], X)
 
-    # Training the K-NN model on the Training set
-    cross_validation(X, Y, knn, [1, 5, 10], 5)
+    cross_validation(X, Y, models, ["knn"], 10)
 
     X = feature_scale(X)
     Y = feature_scale(Y.reshape(-1, 1))
