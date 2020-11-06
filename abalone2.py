@@ -5,6 +5,7 @@ import pandas as pd
 import torch
 from sklearn import model_selection
 from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
@@ -124,17 +125,18 @@ def rlr_validate(X, y, lambdas, cvf=10):
 
 
 def knn(x, y, param):
-    # Training the K-NN model on the Training set
-    # Euclidean distance between neighbors of 5
     classifier = KNeighborsClassifier(n_neighbors=param, metric='minkowski', p=2)
     classifier.fit(x, y)
-    # Predicting the Test set results
     y_pred = classifier.predict(x)
     return accuracy_score(y, y_pred)
 
 
-def log_reg(x, y, param):
-    pass
+def log_reg(x_train, y_train, x_test, y_test, param):
+    classifier = LogisticRegression(random_state=0, C=param)
+    classifier.fit(x_train, y_train)
+    y_pred = classifier.predict(x_test).T
+    test_error_rate = np.sum(y_pred != y_test) / len(y_test)
+    return test_error_rate
 
 
 def neural_network_train(x_train, y_train, x_test, y_test, param):
@@ -208,8 +210,7 @@ def cross_validation(X, Y, model, param, K):
 
 
 def baseline_reg(y_train, y_test):
-    loss = np.square(y_test - np.ones(len(y_test)) * np.mean(y_train)).sum(axis=0) / y_test.shape[0]
-    return loss
+    return np.square(y_test - np.ones(len(y_test)) * np.mean(y_train)).sum(axis=0) / y_test.shape[0]
 
 
 def baseline_class(y_train, y_test):
@@ -229,20 +230,16 @@ def models(x_train, y_train, x_test, y_test, model_indices):
     elif model_indices == "knn":
         param = (1, 5, 10)
         chosen_k = [knn(x_train, y_train, k) - 1 for k in param]
-        err = knn(x_test, y_test, np.argmin(chosen_k))
-        return err
+        return knn(x_test, y_test, np.argmin(chosen_k))
     elif model_indices == "lin":
-        p, err = lin_reg(x_train, y_train, x_test, y_test)
-        return err
+        return lin_reg(x_train, y_train, x_test, y_test)
     elif model_indices == "log":
-        err = log_reg(x_train, y_train, x_test, y_test, param)
-        return err
+        model = log_reg
+        param = np.power(10., range(-2, 2))
     elif model_indices == "reg_baseline":
-        err = baseline_reg(y_train, y_test)
-        return err
+        return baseline_reg(y_train, y_test)
     elif model_indices == "class_baseline":
-        err = baseline_class(y_train, y_test)
-        return err
+        return baseline_class(y_train, y_test)
     else:
         print("Model name does not exist!")
         return None
@@ -296,6 +293,6 @@ if __name__ == "__main__":
     for i in range(len(Y)):
         Y_float[i] = float(Y[i])
 
-    # reg(np.power(10., range(-10, 9)), X_float, Y_float)
-    cross_validation(X_float, Y_class, models, ["class_baseline", "knn"], 10)
-    # cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
+    reg(np.power(10., range(-10, 9)), X_float, Y_float)
+    cross_validation(X_float, Y_class, models, ["class_baseline", "log", "knn"], 10)
+    cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
