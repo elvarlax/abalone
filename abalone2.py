@@ -60,13 +60,15 @@ def neural_network_train(x_train, y_train, x_test, y_test, param):
     # e = (y_test_est != Y_test)
     # error_rate = (sum(e).type(torch.float)/len(Y_test)).data.numpy()
 
-    y_test_est = y_test_est.detach().numpy()
+    y_test_est_n = y_test_est.detach().numpy()
+    y_test = y_test.unsqueeze(1)
+    loss = loss_fn(y_test,y_test_est)
     plt.figure()
     plt.plot(y_test, 'ok')
-    plt.plot(y_test_est, 'or')
+    plt.plot(y_test_est_n, 'or')
     plt.show()
 
-    return final_loss
+    return loss
 
 
 def cross_validation(X, Y, model, param, K):
@@ -156,4 +158,6 @@ if __name__ == "__main__":
     for i in range(len(Y)):
         age[i] = float(Y[i]) / max(Y)
 
-    print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
+    #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
+    
+    cross_validation(X,age,models,[0],2)
