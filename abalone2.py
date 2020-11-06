@@ -1,3 +1,4 @@
+import random as r
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -36,11 +37,12 @@ def reg(lambdas,X,Y):
     
 def lin_reg(x_train, y_train, x_test, y_test):
     N, M = x_train.shape
-    x_train = np.concatenate((np.ones((x_train.shape[0],1)),x_train),1)
-    x_test = np.concatenate((np.ones((x_test.shape[0],1)),x_test),1)
-    M = M+1
-    param = np.power(10.,range(-10,9)) 
-    opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(x_train, y_train, param, 10)
+    x_train = np.concatenate((np.ones((x_train.shape[0], 1)), x_train), 1)
+    x_test = np.concatenate((np.ones((x_test.shape[0], 1)), x_test), 1)
+    M = M + 1
+    param = np.power(10., range(-10, 9))
+    opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(x_train, y_train, param,
+                                                                                             10)
     # Estimate weights for the optimal value of lambda, on entire training set
     lambdaI = p * np.eye(M)
     lambdaI[0, 0] = 0  # Do no regularize the bias term
@@ -125,7 +127,6 @@ def knn(x, y, param):
     # Euclidean distance between neighbors of 5
     classifier = KNeighborsClassifier(n_neighbors=param, metric='minkowski', p=2)
     classifier.fit(x, y)
-    print(classifier.fit(x, y))
     # Predicting the Test set results
     y_pred = classifier.predict(x)
     return accuracy_score(y, y_pred)
@@ -204,11 +205,20 @@ def cross_validation(X, Y, model, param, K):
     print(err)
     return param[np.argmin(er_gen)]
 
-def baseline_reg(y_train,y_test):
-    loss_fn = torch.nn.MSELoss()
-    loss = np.square(y_test-np.ones(len(y_test))*np.mean(y_train)).sum(axis=0)/y_test.shape[0]
-    #loss = loss_fn(y_test, np.ones(len(y_test))*np.mean(y_train))
+
+def baseline_reg(y_train, y_test):
+    loss = np.square(y_test - np.ones(len(y_test)) * np.mean(y_train)).sum(axis=0) / y_test.shape[0]
     return loss
+
+
+def baseline_class(y_train, y_test):
+    if sum(y_train) > len(y_train):
+        y_pred = np.ones(len(y_test))
+    elif sum(y_train) == len(y_train):
+        y_pred = r.randint(0, 1) * np.ones(len(y_test))
+    else:
+        y_pred = np.zeros(len(y_test))
+    return accuracy_score(y_test, y_pred)
 
 
 def models(x_train, y_train, x_test, y_test, model_indices):
@@ -217,23 +227,26 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         param = (5, 7, 9)
     elif model_indices == "knn":
         param = (1, 5, 10)
-        chosen_k = [knn(x_train, y_train, k) for k in param]
-        err = knn(x_test, y_test, np.argmax(chosen_k))
-        return 1 - err
+        chosen_k = [knn(x_train, y_train, k) - 1 for k in param]
+        err = knn(x_test, y_test, np.argmin(chosen_k))
+        return err
     elif model_indices == "lin":
-        p,err=lin_reg(x_train,y_train,x_test,y_test)
+        p, err = lin_reg(x_train, y_train, x_test, y_test)
         return err
     elif model_indices == "log":
         pass
     elif model_indices == "reg_baseline":
-        err = baseline_reg(y_train,y_test)
+        err = baseline_reg(y_train, y_test)
+        return err
+    elif model_indices == "class_baseline":
+        
+        err = baseline_class(y_train, y_test)
         return err
     else:
         print("Model name does not exist!")
         return None
 
     p = cross_validation(x_train, y_train, model, param, 5)
-
     err = model(x_train, y_train, x_test, y_test, p)
 
     return err
@@ -247,18 +260,17 @@ def column_transformer(param, X):
 def feature_scale(x):
     sc = StandardScaler()
     x_trans = sc.fit_transform(x)
-    #x_test = sc.transform(x_test)
+    # x_test = sc.transform(x_test)
     return x_trans
 
 
 if __name__ == "__main__":
     # Importing the dataset
-    #plt.close(fig='all')
-    
+    plt.close(fig='all')
     dataset = pd.read_csv('abalone.csv')
     X = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
-    
+
     # Create a age column from the Rings column + 1.5
     dataset['Age'] = dataset['Rings'] + 1.5
     dataset.drop('Rings', axis=1, inplace=True)
@@ -266,28 +278,22 @@ if __name__ == "__main__":
     # Column transform Sex column
     X = column_transformer([0], X)
 
-    #cross_validation(X, Y, models, ["knn"], 10)
+    cross_validation(X, Y, models, ["knn"], 10)
+
     X = feature_scale(X)
     Y = feature_scale(Y.reshape(-1, 1))
-    
+
     X_float = np.zeros((len(X), len(X[1]) - 1), float)
 
     for i in range(len(X)):
         for f in range(1, len(X[i])):
             X_float[i][f - 1] = float(X[i][f])
-            
+
     # Convert age to float
     Y_float = np.zeros(len(Y), float)
     for i in range(len(Y)):
         Y_float[i] = float(Y[i])
-        
-
     reg(np.power(10.,range(-10,9)),X_float,Y_float)
-    
-    # Training the K-NN model on the Training set
-    # Euclidean distance between neighbors of five
-    #print("KNN Accuracy: {}\n".format(knn(X_train, Y_train, X_test, Y_test, 5)))
 
-    #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
-    
-    #cross_validation(X_float,Y_float,models,["reg_baseline","lin","ann"],2)
+    cross_validation(X, Y, models, ["class_baseline", "log", "knn"], 10)
+    cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
