@@ -10,7 +10,29 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 from toolbox_02450 import train_neural_net
 
-
+def reg(lambdas,X,Y):
+    N, M = X.shape
+    X = np.concatenate((np.ones((X.shape[0],1)),X),1)
+    M = M+1
+    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X, Y, lambdas, 10)
+    # Estimate weights for the optimal value of lambda, on entire training set
+    lambdaI = opt_lambda * np.eye(M)
+    lambdaI[0, 0] = 0  # Do no regularize the bias term
+    Xty = X.T @ Y
+    XtX = X.T @ X
+    w_rlr = np.linalg.solve(XtX + lambdaI, Xty).squeeze()
+    
+    print("The weights corresponding to "+str(opt_lambda)+" are: ",w_rlr)
+    
+    plt.figure(figsize=[12,6])
+    plt.plot(lambdas,test_err_vs_lambda)
+    plt.xscale("log")
+    plt.xlabel(r"$\lambda$",size=16)
+    plt.ylabel(r"$E_{gen}$",size=16)
+    plt.show()
+   
+    #return w_rlr
+    
 def lin_reg(x_train, y_train, x_test, y_test):
     N, M = x_train.shape
     x_train = np.concatenate((np.ones((x_train.shape[0],1)),x_train),1)
@@ -230,7 +252,7 @@ def feature_scale(x):
 
 if __name__ == "__main__":
     # Importing the dataset
-    plt.close(fig='all')
+    #plt.close(fig='all')
     
     dataset = pd.read_csv('abalone.csv')
     X = dataset.iloc[:, :-1].values
@@ -243,7 +265,7 @@ if __name__ == "__main__":
     # Column transform Sex column
     X = column_transformer([0], X)
 
-    cross_validation(X, Y, models, ["knn"], 10)
+    #cross_validation(X, Y, models, ["knn"], 10)
 
     X = feature_scale(X)
     Y = feature_scale(Y.reshape(-1, 1))
@@ -258,11 +280,17 @@ if __name__ == "__main__":
     Y_float = np.zeros(len(Y), float)
     for i in range(len(Y)):
         Y_float[i] = float(Y[i])
+
+
         
+        
+
+    reg(np.power(10.,range(-10,9)),X_float,Y_float)
+    
     # Training the K-NN model on the Training set
     # Euclidean distance between neighbors of five
-    print("KNN Accuracy: {}\n".format(knn(X_train, Y_train, X_test, Y_test, 5)))
+    #print("KNN Accuracy: {}\n".format(knn(X_train, Y_train, X_test, Y_test, 5)))
 
     #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
     
-    cross_validation(X_float,Y_float,models,["reg_baseline","lin","ann"],2)
+    #cross_validation(X_float,Y_float,models,["reg_baseline","lin","ann"],2)
