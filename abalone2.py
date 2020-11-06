@@ -25,6 +25,7 @@ def reg(lambdas,X,Y):
     print("The weights corresponding to "+str(opt_lambda)+" are: ",w_rlr)
     
     plt.figure(figsize=[12,6])
+    plt.grid()
     plt.plot(lambdas,test_err_vs_lambda)
     plt.xscale("log")
     plt.xlabel(r"$\lambda$",size=16)
@@ -266,7 +267,6 @@ if __name__ == "__main__":
     X = column_transformer([0], X)
 
     #cross_validation(X, Y, models, ["knn"], 10)
-
     X = feature_scale(X)
     Y = feature_scale(Y.reshape(-1, 1))
     
@@ -280,12 +280,9 @@ if __name__ == "__main__":
     Y_float = np.zeros(len(Y), float)
     for i in range(len(Y)):
         Y_float[i] = float(Y[i])
-
-
-        
         
 
-    reg(np.power(10.,range(-10,9)),X_float,Y_float)
+    #reg(np.power(10.,range(-10,9)),X_float,Y_float)
     
     # Training the K-NN model on the Training set
     # Euclidean distance between neighbors of five
