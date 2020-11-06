@@ -282,7 +282,7 @@ if __name__ == "__main__":
         Y_float[i] = float(Y[i])
         
 
-    #reg(np.power(10.,range(-10,9)),X_float,Y_float)
+    reg(np.power(10.,range(-10,9)),X_float,Y_float)
     
     # Training the K-NN model on the Training set
     # Euclidean distance between neighbors of five
