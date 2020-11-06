@@ -14,6 +14,7 @@ from toolbox_02450 import train_neural_net
 def lin_reg(x_train,y_train,x_test,y_test):
     N, M = x_train.shape
     x_train = np.concatenate((np.ones((x_train.shape[0],1)),x_train),1)
+    x_test = np.concatenate((np.ones((x_test.shape[0],1)),x_test),1)
     M = M+1
     param = np.power(10.,range(-10,9)) 
     opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(x_train, y_train, param, 10)
@@ -177,6 +178,12 @@ def cross_validation(X, Y, model, param, K):
     print(err)
     return param[np.argmin(er_gen)]
 
+def baseline_reg(y_train,y_test):
+    loss_fn = torch.nn.MSELoss()
+    loss = np.square(y_test-np.ones(len(y_test))*np.mean(y_train)).sum(axis=0)/y_test.shape[0]
+    #loss = loss_fn(y_test, np.ones(len(y_test))*np.mean(y_train))
+    return loss
+
 
 def models(x_train, y_train, x_test, y_test, model_indices):
     if model_indices == "ann":
@@ -187,14 +194,17 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         param = (1, 5, 10)
     elif model_indices == "lin":
         p,err=lin_reg(x_train,y_train,x_test,y_test)
-        return p,err
+        return err
     elif model_indices == "log":
         pass
+    elif model_indices == "reg_baseline":
+        err = baseline_reg(y_train,y_test)
+        return err
     else:
         print("Model name does not exist!")
         return None
 
-    p = cross_validation(x_train, y_train, model, param, 10)
+    p = cross_validation(x_train, y_train, model, param, 5)
 
     err = model(x_train, y_train, x_test, y_test, p)
 
@@ -207,19 +217,21 @@ def column_transformer(param, X):
     return X
 
 
-def feature_scale(x_train, x_test):
+def feature_scale(x):
     sc = StandardScaler()
-    x_train = sc.fit_transform(x_train)
-    x_test = sc.transform(x_test)
-    return x_train, x_test
+    x_trans = sc.fit_transform(x)
+    #x_test = sc.transform(x_test)
+    return x_trans
 
 
 if __name__ == "__main__":
     # Importing the dataset
+    plt.close(fig='all')
+    
     dataset = pd.read_csv('abalone.csv')
     X = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
-
+    
     # Create a age column from the Rings column + 1.5
     dataset['Age'] = dataset['Rings'] + 1.5
     dataset.drop('Rings', axis=1, inplace=True)
@@ -230,19 +242,24 @@ if __name__ == "__main__":
     # Training the K-NN model on the Training set
     cross_validation(X, Y, knn, [1, 5, 10], 5)
 
-    X_ann = dataset.iloc[:, :-1].values
-    X_ann = column_transformer([0], X_ann)
-    X = np.zeros((len(X_ann), len(X_ann[1]) - 1), float)
+    X = feature_scale(X)
+    Y = feature_scale(Y.reshape(-1, 1))
+    
+    X_float = np.zeros((len(X), len(X[1]) - 1), float)
 
     for i in range(len(X)):
-        for f in range(1, len(X[i]) + 1):
-            X[i][f - 1] = float(X_ann[i][f])
-
+        for f in range(1, len(X[i])):
+            X_float[i][f - 1] = float(X[i][f])
+            
     # Convert age to float
-    age = np.zeros(len(Y), float)
+    Y_float = np.zeros(len(Y), float)
     for i in range(len(Y)):
-        age[i] = float(Y[i]) / max(Y)
+        Y_float[i] = float(Y[i])
+        
+    # Training the K-NN model on the Training set
+    # Euclidean distance between neighbors of five
+    print("KNN Accuracy: {}\n".format(knn(X_train, Y_train, X_test, Y_test, 5)))
 
-    # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
-
-    cross_validation(X, age, models, [0], 2)
+    #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
+    
+    cross_validation(X_float,Y_float,models,["reg_baseline","lin","ann"],2)
