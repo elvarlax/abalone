@@ -233,7 +233,7 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         param = (3, 4, 5, 7, 9)
     elif model_indices == "knn":
         param = (1, 5, 10)
-        chosen_k = [knn(x_train, y_train, k) - 1 for k in param]
+        chosen_k = [knn(x_train, y_train, k) for k in param]
         return knn(x_test, y_test, np.argmin(chosen_k))
     elif model_indices == "lin":
         return lin_reg(x_train, y_train, x_test, y_test)
@@ -297,11 +297,8 @@ if __name__ == "__main__":
         Y_float[i] = float(Y[i])
 
     reg(np.power(10., range(-10, 9)), X_float, Y_float)
-    cross_validation(X_float, Y_class, models, ["class_baseline", "log", "knn"], 10)
-        
-    # Training the K-NN model on the Training set
-    # Euclidean distance between neighbors of five
-    #print("KNN Accuracy: {}\n".format(knn(X_train, Y_train, X_test, Y_test, 5)))
+    cross_validation(X_float, Y_class, models, ["class_baseline", "log", "knn"], 2)
+    cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
 
     #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
     
