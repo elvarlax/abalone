@@ -270,7 +270,10 @@ if __name__ == "__main__":
     dataset = pd.read_csv('abalone.csv')
     X = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
-
+    Y_class =Y.copy()
+    Yclass[Yclass<=10]=0
+    Yclass[Yclass>0]=1
+    
     # Create a age column from the Rings column + 1.5
     dataset['Age'] = dataset['Rings'] + 1.5
     dataset.drop('Rings', axis=1, inplace=True)
