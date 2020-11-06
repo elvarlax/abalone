@@ -11,10 +11,11 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 from toolbox_02450 import train_neural_net
 
-def reg(lambdas,X,Y):
+
+def reg(lambdas, X, Y):
     N, M = X.shape
-    X = np.concatenate((np.ones((X.shape[0],1)),X),1)
-    M = M+1
+    X = np.concatenate((np.ones((X.shape[0], 1)), X), 1)
+    M = M + 1
     opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X, Y, lambdas, 10)
     # Estimate weights for the optimal value of lambda, on entire training set
     lambdaI = opt_lambda * np.eye(M)
@@ -22,19 +23,20 @@ def reg(lambdas,X,Y):
     Xty = X.T @ Y
     XtX = X.T @ X
     w_rlr = np.linalg.solve(XtX + lambdaI, Xty).squeeze()
-    
-    print("The weights corresponding to "+str(opt_lambda)+" are: ",w_rlr)
-    
-    plt.figure(figsize=[12,6])
+
+    print("The weights corresponding to " + str(opt_lambda) + " are: ", w_rlr)
+
+    plt.figure(figsize=[12, 6])
     plt.grid()
-    plt.plot(lambdas,test_err_vs_lambda)
+    plt.plot(lambdas, test_err_vs_lambda)
     plt.xscale("log")
-    plt.xlabel(r"$\lambda$",size=16)
-    plt.ylabel(r"$E_{gen}$",size=16)
+    plt.xlabel(r"$\lambda$", size=16)
+    plt.ylabel(r"$E_{gen}$", size=16)
     plt.show()
-   
-    #return w_rlr
-    
+
+    # return w_rlr
+
+
 def lin_reg(x_train, y_train, x_test, y_test):
     N, M = x_train.shape
     x_train = np.concatenate((np.ones((x_train.shape[0], 1)), x_train), 1)
@@ -121,7 +123,6 @@ def rlr_validate(X, y, lambdas, cvf=10):
     return opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda
 
 
-# (X,y,param)
 def knn(x, y, param):
     # Training the K-NN model on the Training set
     # Euclidean distance between neighbors of 5
@@ -132,7 +133,7 @@ def knn(x, y, param):
     return accuracy_score(y, y_pred)
 
 
-def logistic_regression(x_train, y_train, x_test, y_test, param):
+def log_reg(x, y, param):
     pass
 
 
@@ -234,12 +235,12 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         p, err = lin_reg(x_train, y_train, x_test, y_test)
         return err
     elif model_indices == "log":
-        pass
+        err = log_reg(x_train, y_train, x_test, y_test, param)
+        return err
     elif model_indices == "reg_baseline":
         err = baseline_reg(y_train, y_test)
         return err
     elif model_indices == "class_baseline":
-        
         err = baseline_class(y_train, y_test)
         return err
     else:
@@ -260,7 +261,6 @@ def column_transformer(param, X):
 def feature_scale(x):
     sc = StandardScaler()
     x_trans = sc.fit_transform(x)
-    # x_test = sc.transform(x_test)
     return x_trans
 
 
@@ -270,10 +270,10 @@ if __name__ == "__main__":
     dataset = pd.read_csv('abalone.csv')
     X = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
-    Y_class =Y.copy()
-    Yclass[Yclass<=10]=0
-    Yclass[Yclass>0]=1
-    
+    Y_class = Y.copy()
+    Y_class[Y_class <= 10] = 0
+    Y_class[Y_class > 0] = 1
+
     # Create a age column from the Rings column + 1.5
     dataset['Age'] = dataset['Rings'] + 1.5
     dataset.drop('Rings', axis=1, inplace=True)
@@ -281,8 +281,7 @@ if __name__ == "__main__":
     # Column transform Sex column
     X = column_transformer([0], X)
 
-    cross_validation(X, Y, models, ["knn"], 10)
-
+    # Feature scale
     X = feature_scale(X)
     Y = feature_scale(Y.reshape(-1, 1))
 
@@ -296,7 +295,7 @@ if __name__ == "__main__":
     Y_float = np.zeros(len(Y), float)
     for i in range(len(Y)):
         Y_float[i] = float(Y[i])
-    reg(np.power(10.,range(-10,9)),X_float,Y_float)
 
-    cross_validation(X, Y, models, ["class_baseline", "log", "knn"], 10)
-    cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
+    # reg(np.power(10., range(-10, 9)), X_float, Y_float)
+    cross_validation(X_float, Y_class, models, ["class_baseline", "knn"], 10)
+    # cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
