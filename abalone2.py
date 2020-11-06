@@ -71,11 +71,9 @@ def neural_network_train(x_train, y_train, x_test, y_test, param):
 
 def cross_validation(X, Y, model, param, K):
     CV = model_selection.KFold(K, shuffle=True)
-    er_gen = np.zeros(len(param))
-    for i in range(0, len(param)):
-        err = np.zeros(K)
-        print(str(param[i]))
-        for k, (train_index, test_index) in enumerate(CV.split(X, X)):
+    err = np.zeros([K,len(param)])
+    for i, (train_index, test_index) in enumerate(CV.split(X, X)):
+        for k in range(len(param)):
             x_train = X[train_index, :]
             y_train = Y[train_index]
             x_test = X[test_index, :]
@@ -83,14 +81,30 @@ def cross_validation(X, Y, model, param, K):
 
             # Train the network
             # error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
-            err[k] = model(x_train, y_train, x_test, y_test, param[i])
-        er_gen[i] = sum(err) / K
+            err[i,k] = model(x_train, y_train, x_test, y_test, param[k])
 
         # weights = [net[i].weight.data.numpy().T for i in [0, 2]]
         # biases = [net[i].bias.data.numpy() for i in [0, 2]]
         # tf = [str(net[i]) for i in [1, 2]]
         # draw_neural_net(weights, biases, tf)
+    er_gen = np.mean(err,0)
+    print(err)
     return param[np.argmin(er_gen)]
+
+def models(x_train,y_train,x_test,y_test,i):
+    
+    if (i == 0):
+        model = neural_network_train
+        param = (5,7,9)
+    #elif (i == 1):
+     #   model = linear_regression
+      #  param = (0.1,1,10) 
+    
+    p = cross_validation(x_train,y_train,model,param,10)
+    
+    err = model(x_train,y_train,x_test,y_test,p)
+    
+    return err
 
 
 def column_transformer(param, X):
@@ -142,4 +156,4 @@ if __name__ == "__main__":
     for i in range(len(Y)):
         age[i] = float(Y[i]) / max(Y)
 
-    print(cross_validation(X, age, neural_network_train, [5, 6, 7], 3))
+    print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
