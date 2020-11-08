@@ -178,10 +178,10 @@ def neural_network_train(x_train, y_train, x_test, y_test, param):
     y_test_est_n = y_test_est.detach().numpy()
     y_test = y_test.unsqueeze(1)
     loss = loss_fn(y_test, y_test_est)
-    #plt.figure()
-    #plt.plot(y_test, 'ok')
-    #plt.plot(y_test_est_n, 'or')
-    #plt.show()
+    # plt.figure()
+    # plt.plot(y_test, 'ok')
+    # plt.plot(y_test_est_n, 'or')
+    # plt.show()
 
     return loss
 
