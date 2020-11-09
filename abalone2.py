@@ -55,7 +55,7 @@ def lin_reg(x_train, y_train, x_test, y_test):
     # Compute mean squared error with regularization with optimal lambda
     Error_train_rlr = np.square(y_train - x_train @ w_rlr).sum(axis=0) / y_train.shape[0]
     err = np.square(y_test - x_test @ w_rlr).sum(axis=0) / y_test.shape[0]
-    return p, err
+    return err
 
 
 def rlr_validate(X, y, lambdas, cvf=10):
@@ -286,7 +286,7 @@ def significant(z,alpha,method):
         if abs(p)>alpha/2:
             print("H0 cannot be rejected")
         if p<0.05:
-            print(r"H0 rejected and H1 (mean(z) not 0) accepted with {} confidence level".format(str(1+alpha)))
+            print(r"H0 rejected and H1 (mean(z) not 0) accepted with {} confidence level".format(str(1-alpha)))
 
 
 if __name__ == "__main__":
@@ -328,4 +328,4 @@ if __name__ == "__main__":
     #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
     
     methodbest, err = cross_validation(X_float,Y_float,models,["reg_baseline","lin","ann"],4)
-    significant(err[:,0]-err[:,1],0.05,"1sided")
+    significant(err[:,1]-err[:,2],0.05,"1sided")
