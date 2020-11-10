@@ -9,6 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from scipy.stats import chi2                            
 
 from toolbox_02450 import train_neural_net
 
@@ -130,6 +131,10 @@ def knn(x, y, param):
     classifier = KNeighborsClassifier(n_neighbors=param, metric='minkowski', p=2)
     classifier.fit(x, y)
     y_pred = classifier.predict(x)
+    global cB
+    if a == 1:
+        cB.append(y_pred == y)
+        print("Knn")    
     return accuracy_score(y, y_pred)
 
 
@@ -138,6 +143,9 @@ def log_reg(x_train, y_train, x_test, y_test, param):
     classifier.fit(x_train, y_train)
     y_pred = classifier.predict(x_test).T
     test_error_rate = np.sum(y_pred != y_test) / len(y_test)
+    global cA
+    if a == 1:
+        cA.append(y_pred == y_test)         
     return test_error_rate
 
 
@@ -226,16 +234,24 @@ def baseline_class(y_train, y_test):
         y_pred = r.randint(0, 1) * np.ones(len(y_test))
     else:
         y_pred = np.zeros(len(y_test))
+    print("Baseline out")
+    global cC
+    if a == 1:
+        cC.append(y_pred == y_test)
+        print("Baseline")                     
     return accuracy_score(y_test, y_pred)
 
 
 def models(x_train, y_train, x_test, y_test, model_indices):
+    global a        
     if model_indices == "ann":
         model = neural_network_train
         param = (3, 4, 5, 7, 9)
     elif model_indices == "knn":
         param = (1, 5, 10)
+        a = 0     
         chosen_k = [knn(x_train, y_train, k) for k in param]
+        a = 1     
         return knn(x_test, y_test, np.argmin(chosen_k))
     elif model_indices == "lin":
         return lin_reg(x_train, y_train, x_test, y_test)
@@ -245,13 +261,17 @@ def models(x_train, y_train, x_test, y_test, model_indices):
     elif model_indices == "reg_baseline":
         return baseline_reg(y_train, y_test)
     elif model_indices == "class_baseline":
+        a = 1     
         return baseline_class(y_train, y_test)
     else:
         print("Model name does not exist!")
         return None
 
+    a = 0     
     p = cross_validation(x_train, y_train, model, param, 5)
+    a = 1     
     err = model(x_train, y_train, x_test, y_test, p)
+    a = 0
 
     return err
 
@@ -297,10 +317,27 @@ def significant(z,alpha,method):
         if p<0.05:
             print(r"H0 rejected and H1 (mean(z) not 0) accepted with {} confidence level".format(str(1-alpha)))
 
-def mcNemars():
+
+def mcnemars(c1,c2):
+    d1 = 0
+    d2 = 0
+    for i in range(len(c1)):
+        for f in range(len(c1[i])):
+            if c1[i][f] and (not c2[i][f]):
+                d1 += 1
+            if (not c1[i][f]) and (c2[i][f]):
+                d2 += 1
+    print("b = "+str(d1)+" c = "+str(d2))
+    x =  (d1 - d2)**2/(d1+d2)
+    
+    chi2.cdf(x, 1)
 if __name__ == "__main__":
     # Importing the dataset
     #plt.close(fig='all')
+    plt.close(fig='all')
+    cA = []
+    cB = []
+    cC = []       
     dataset = pd.read_csv('abalone.csv')
     X = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
