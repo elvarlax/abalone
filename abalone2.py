@@ -297,7 +297,7 @@ def significant(z,alpha,method):
         if p<0.05:
             print(r"H0 rejected and H1 (mean(z) not 0) accepted with {} confidence level".format(str(1-alpha)))
 
-
+def mcNemars():
 if __name__ == "__main__":
     # Importing the dataset
     #plt.close(fig='all')
@@ -335,6 +335,8 @@ if __name__ == "__main__":
     #cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
 
     #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
-    
+    C=
+    global 
     methodbest, err = cross_validation(X_float,Y_float,models,["reg_baseline","lin"],10)
+    methodbest,err= cross_validation(X_float,Y_float,models,["class_baseline","KNN"],10)
     significant(err[:,0]-err[:,1],0.05,"2sided")
