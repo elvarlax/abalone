@@ -12,6 +12,8 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 from toolbox_02450 import train_neural_net
 
+from scipy.stats import t
+
 
 def reg(lambdas, X, Y):
     N, M = X.shape
@@ -265,12 +267,15 @@ def feature_scale(x):
     return x_trans
 
 def significant(z,alpha,method):
-    n=len(z)
+    J=len(z)
+    #K=J
     zhat=np.mean(z)
-    sigma=1/(n*(n-1))*sum((z-zhat)**2)
+    s2=1/((J-1))*sum((z-zhat)**2)
+    sigma=np.sqrt(s2*(1/J+1/(J-1)))
+    
     if method=="1sided":
         #zstar=t.interval(1-alpha, len(z)-1, loc=0, scale=sigma)[1]
-        p=1-t.cdf(abs(zhat), len(z)-1, loc=0, scale=np.sqrt(sigma))
+        p=1-t.cdf(abs(zhat), len(z)-1, loc=0, scale=sigma)
         print("The p-value is ",p)
         if p>alpha:
             print("H0 cannot be rejected")
@@ -281,7 +286,11 @@ def significant(z,alpha,method):
                 print("H0 rejected and H1 (mean(z)<0)accepted with "+str(1-alpha)+" confidence level")
     if method=="2sided":
         #tstar=t.interval(1-alpha, len(z)-1, loc=0, scale=sigma)[1]
-        p=1-t.cdf(zhat, len(z)-1, loc=0, scale=sigma)
+        p=2*t.cdf(-abs(zhat), len(z)-1, loc=0, scale=sigma)
+        bounds=sigma*t.ppf(alpha/2,J-1)
+        CI=[zhat+bounds,zhat-bounds]
+        print("The "+str((1-alpha)*100)+"% CI is: ",CI)
+        print(zhat+bounds)
         print("The p-value is ",p)
         if abs(p)>alpha/2:
             print("H0 cannot be rejected")
@@ -291,7 +300,7 @@ def significant(z,alpha,method):
 
 if __name__ == "__main__":
     # Importing the dataset
-    plt.close(fig='all')
+    #plt.close(fig='all')
     dataset = pd.read_csv('abalone.csv')
     X = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
@@ -321,11 +330,11 @@ if __name__ == "__main__":
     for i in range(len(Y)):
         Y_float[i] = float(Y[i])
 
-    reg(np.power(10., range(-10, 9)), X_float, Y_float)
-    cross_validation(X_float, Y_class, models, ["class_baseline", "log", "knn"], 2)
-    cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
+    #reg(np.power(10., range(-10, 9)), X_float, Y_float)
+    #cross_validation(X_float, Y_class, models, ["class_baseline", "log", "knn"], 2)
+    #cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
 
     #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
     
-    methodbest, err = cross_validation(X_float,Y_float,models,["reg_baseline","lin","ann"],4)
-    significant(err[:,1]-err[:,2],0.05,"1sided")
+    methodbest, err = cross_validation(X_float,Y_float,models,["reg_baseline","lin"],10)
+    significant(err[:,0]-err[:,1],0.05,"2sided")
