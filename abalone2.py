@@ -9,7 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from scipy.stats import chi2                            
+from scipy.stats import chi2
 
 from toolbox_02450 import train_neural_net
 
@@ -134,7 +134,7 @@ def knn(x, y, param):
     global cB
     if a == 1:
         cB.append(y_pred == y)
-        print("Knn")    
+        print("Knn")
     return accuracy_score(y, y_pred)
 
 
@@ -145,7 +145,7 @@ def log_reg(x_train, y_train, x_test, y_test, param):
     test_error_rate = np.sum(y_pred != y_test) / len(y_test)
     global cA
     if a == 1:
-        cA.append(y_pred == y_test)         
+        cA.append(y_pred == y_test)
     return test_error_rate
 
 
@@ -238,20 +238,20 @@ def baseline_class(y_train, y_test):
     global cC
     if a == 1:
         cC.append(y_pred == y_test)
-        print("Baseline")                     
+        print("Baseline")
     return accuracy_score(y_test, y_pred)
 
 
 def models(x_train, y_train, x_test, y_test, model_indices):
-    global a        
+    global a
     if model_indices == "ann":
         model = neural_network_train
         param = (3, 4, 5, 7, 9)
     elif model_indices == "knn":
         param = (1, 5, 10)
-        a = 0     
+        a = 0
         chosen_k = [knn(x_train, y_train, k) for k in param]
-        a = 1     
+        a = 1
         return knn(x_test, y_test, np.argmin(chosen_k))
     elif model_indices == "lin":
         return lin_reg(x_train, y_train, x_test, y_test)
@@ -261,15 +261,15 @@ def models(x_train, y_train, x_test, y_test, model_indices):
     elif model_indices == "reg_baseline":
         return baseline_reg(y_train, y_test)
     elif model_indices == "class_baseline":
-        a = 1     
+        a = 1
         return baseline_class(y_train, y_test)
     else:
         print("Model name does not exist!")
         return None
 
-    a = 0     
-    p = cross_validation(x_train, y_train, model, param, 5)
-    a = 1     
+    a = 0
+    p, _ = cross_validation(x_train, y_train, model, param, 5)
+    a = 1
     err = model(x_train, y_train, x_test, y_test, p)
     a = 0
 
@@ -286,39 +286,40 @@ def feature_scale(x):
     x_trans = sc.fit_transform(x)
     return x_trans
 
-def significant(z,alpha,method):
-    J=len(z)
-    #K=J
-    zhat=np.mean(z)
-    s2=1/((J-1))*sum((z-zhat)**2)
-    sigma=np.sqrt(s2*(1/J+1/(J-1)))
-    
-    if method=="1sided":
-        #zstar=t.interval(1-alpha, len(z)-1, loc=0, scale=sigma)[1]
-        p=1-t.cdf(abs(zhat), len(z)-1, loc=0, scale=sigma)
-        print("The p-value is ",p)
-        if p>alpha:
+
+def significant(z, alpha, method):
+    J = len(z)
+    # K=J
+    zhat = np.mean(z)
+    s2 = 1 / ((J - 1)) * sum((z - zhat) ** 2)
+    sigma = np.sqrt(s2 * (1 / J + 1 / (J - 1)))
+
+    if method == "1sided":
+        # zstar=t.interval(1-alpha, len(z)-1, loc=0, scale=sigma)[1]
+        p = 1 - t.cdf(abs(zhat), len(z) - 1, loc=0, scale=sigma)
+        print("The p-value is ", p)
+        if p > alpha:
             print("H0 cannot be rejected")
-        if p<alpha:
-            if zhat>0:
-                print("H0 rejected and H1 (mean(z)>0) accepted with "+str(1-alpha)+" confidence level")
+        if p < alpha:
+            if zhat > 0:
+                print("H0 rejected and H1 (mean(z)>0) accepted with " + str(1 - alpha) + " confidence level")
             else:
-                print("H0 rejected and H1 (mean(z)<0)accepted with "+str(1-alpha)+" confidence level")
-    if method=="2sided":
-        #tstar=t.interval(1-alpha, len(z)-1, loc=0, scale=sigma)[1]
-        p=2*t.cdf(-abs(zhat), len(z)-1, loc=0, scale=sigma)
-        bounds=sigma*t.ppf(alpha/2,J-1)
-        CI=[zhat+bounds,zhat-bounds]
-        print("The "+str((1-alpha)*100)+"% CI is: ",CI)
-        print(zhat+bounds)
-        print("The p-value is ",p)
-        if abs(p)>alpha/2:
+                print("H0 rejected and H1 (mean(z)<0)accepted with " + str(1 - alpha) + " confidence level")
+    if method == "2sided":
+        # tstar=t.interval(1-alpha, len(z)-1, loc=0, scale=sigma)[1]
+        p = 2 * t.cdf(-abs(zhat), len(z) - 1, loc=0, scale=sigma)
+        bounds = sigma * t.ppf(alpha / 2, J - 1)
+        CI = [zhat + bounds, zhat - bounds]
+        print("The " + str((1 - alpha) * 100) + "% CI is: ", CI)
+        print(zhat + bounds)
+        print("The p-value is ", p)
+        if abs(p) > alpha / 2:
             print("H0 cannot be rejected")
-        if p<0.05:
-            print(r"H0 rejected and H1 (mean(z) not 0) accepted with {} confidence level".format(str(1-alpha)))
+        if p < 0.05:
+            print(r"H0 rejected and H1 (mean(z) not 0) accepted with {} confidence level".format(str(1 - alpha)))
 
 
-def mcnemars(c1,c2):
+def mcnemars(c1, c2):
     d1 = 0
     d2 = 0
     for i in range(len(c1)):
@@ -327,17 +328,19 @@ def mcnemars(c1,c2):
                 d1 += 1
             if (not c1[i][f]) and (c2[i][f]):
                 d2 += 1
-    print("b = "+str(d1)+" c = "+str(d2))
-    x =  (d1 - d2)**2/(d1+d2)
-    
+    print("b = " + str(d1) + " c = " + str(d2))
+    x = (d1 - d2) ** 2 / (d1 + d2)
+
     chi2.cdf(x, 1)
+
+
 if __name__ == "__main__":
     # Importing the dataset
-    #plt.close(fig='all')
+    # plt.close(fig='all')
     plt.close(fig='all')
     cA = []
     cB = []
-    cC = []       
+    cC = []
     dataset = pd.read_csv('abalone.csv')
     X = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
@@ -367,13 +370,8 @@ if __name__ == "__main__":
     for i in range(len(Y)):
         Y_float[i] = float(Y[i])
 
-    #reg(np.power(10., range(-10, 9)), X_float, Y_float)
-    #cross_validation(X_float, Y_class, models, ["class_baseline", "log", "knn"], 2)
-    #cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 2)
-
-    #print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
-    C=
-    global 
-    methodbest, err = cross_validation(X_float,Y_float,models,["reg_baseline","lin"],10)
-    methodbest,err= cross_validation(X_float,Y_float,models,["class_baseline","KNN"],10)
-    significant(err[:,0]-err[:,1],0.05,"2sided")
+    # reg(np.power(10., range(-10, 9)), X_float, Y_float)
+    # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
+    methodbest1, err1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 10)
+    methodbest2, err2 = cross_validation(X_float, Y_float, models, ["class_baseline", "knn", "log"], 10)
+    significant(err1[:, 0] - err1[:, 1], 0.05, "2sided")
