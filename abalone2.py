@@ -13,6 +13,8 @@ from scipy.stats import chi2
 from toolbox_02450 import train_neural_net
 
 from scipy.stats import t
+from scipy.stats import beta as b
+from scipy.stats import binom
 
 global data
 data = []
@@ -34,6 +36,7 @@ def reg(lambdas, X, Y):
     M = M + 1
     opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X, Y, lambdas, 10)
     # Estimate weights for the optimal value of lambda, on entire training set
+    #opt_lambda=0
     lambdaI = opt_lambda * np.eye(M)
     lambdaI[0, 0] = 0  # Do no regularize the bias term
     Xty = X.T @ Y
@@ -318,7 +321,7 @@ def feature_scale(x):
     return x_trans
 
 
-def significant(z, alpha, method):
+def significant(z, alpha, method="2sided"):
     J = len(z)
     # K=J
     zhat = np.mean(z)
@@ -342,7 +345,6 @@ def significant(z, alpha, method):
         bounds = sigma * t.ppf(alpha / 2, J - 1)
         CI = [zhat + bounds, zhat - bounds]
         print("The " + str((1 - alpha) * 100) + "% CI is: ", CI)
-        print(zhat + bounds)
         print("The p-value is ", p)
         if abs(p) > alpha / 2:
             print("H0 cannot be rejected")
@@ -364,9 +366,10 @@ def get_error(method):
     return np.stack(d, axis=0)
 
 
-def mcnemars(c1, c2):
+def mcnemars(c1, c2,alpha):
     d1 = 0
     d2 = 0
+    n=len(c1)
     for i in range(len(c1)):
         for f in range(len(c1[i])):
             if c1[i][f] and not c2[i][f]:
@@ -374,14 +377,25 @@ def mcnemars(c1, c2):
             if not c1[i][f] and c2[i][f]:
                 d2 += 1
     print("b = " + str(d1) + " c = " + str(d2))
-    x = (d1 - d2) ** 2 / (d1 + d2)
+    N=d1+d2
+    if N<5:
+        print("warning, n12+n21<5 ")
+    E=(d1 - d2) / n #expected value
+    Q=(n**2*(n+1)*(E+1)*(E-1))/(n*(d1+d2)-(d1-d2)**2)
+    f=(E+1)*(Q-1)/2
+    g=(1-E)*(Q-1)/2    
+    CI1=2 * b.ppf(alpha/2,f,g)-1
+    CI2=2 * b.ppf(1-alpha/2,f,g)-1
+    CI=[CI1,CI2]
+    p=2*binom.cdf(min([d1,d2]),n=N,p=0.5)
+    print("The " + str((1 - alpha) * 100) + "% CI is: ", CI)
+    print("The p-value is ", p)
 
-    chi2.cdf(x, 1)
 
 if __name__ == "__main__":
     # Importing the dataset
     # plt.close(fig='all')
-    plt.close(fig='all')
+    #plt.close(fig='all')
     cA = []
     cB = []
     cC = []
