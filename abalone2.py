@@ -14,7 +14,10 @@ from toolbox_02450 import train_neural_net
 
 from scipy.stats import t
 
-
+global data
+data = []
+    
+    
 def acc_score(y_pred, y_test):
     len_test = len(y_test)
     mix = y_pred + y_test
@@ -207,6 +210,7 @@ def neural_network_train(x_train, y_train, x_test, y_test, param):
 def cross_validation(X, Y, model, param, K):
     CV = model_selection.KFold(K, shuffle=True)
     err = np.zeros([K, len(param)])
+    par = np.zeros([K, len(param)])
     for i, (train_index, test_index) in enumerate(CV.split(X, X)):
         for k in range(len(param)):
             x_train = X[train_index, :]
@@ -216,8 +220,12 @@ def cross_validation(X, Y, model, param, K):
 
             # Train the network
             # error_rate = eval(model1)(X_train, Y_train,X_test, Y_test,param1)
-            err[i, k] = model(x_train, y_train, x_test, y_test, param[k])
-
+            temp = model(x_train, y_train, x_test, y_test, param[k])
+            try:
+                err[i, k] = temp[0]
+                par[i, k] = temp[1]
+            except:
+                err[i, k] = temp
         # weights = [net[i].weight.data.numpy().T for i in [0, 2]]
         # biases = [net[i].bias.data.numpy() for i in [0, 2]]
         # tf = [str(net[i]) for i in [1, 2]]
@@ -231,11 +239,12 @@ def cross_validation(X, Y, model, param, K):
         plt.title("Loss of Neural Network")
         plt.xlabel("Number of nodes in the hidden layer")
         plt.ylabel("Loss")
+        store_error("ann",er_gen)
     else:
         plt.figure(2)
         plt.plot(er_gen, 'k')
     plt.show()
-    return param[np.argmin(er_gen)], err
+    return param[np.argmin(er_gen)], err, par
 
 
 def baseline_reg(y_train, y_test):
@@ -259,12 +268,13 @@ def baseline_class(y_train, y_test):
 
 def models(x_train, y_train, x_test, y_test, model_indices):
     global a
-    K = 5
+    K = 2
     if model_indices == "ann":
         model = neural_network_train
-        param = (1, 2, 3, 4, 5, 7, 10)
+        #param = (1, 2, 3, 4, 5, 7, 10)
+        param = (1,2)
     elif model_indices == "knn":
-        param = range(1, 100)
+        param = range(1, 100,5)
         model = knn
     elif model_indices == "knn_loo":
         param = range(1, 100)
@@ -285,16 +295,16 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         return None
 
     a = 0
-    p, _ = cross_validation(x_train, y_train, model, param, K)
+    p, _, _ = cross_validation(x_train, y_train, model, param, K)
     a = 1
     err = model(x_train, y_train, x_test, y_test, p)
     a = 0
-    
+    #store_error("Outer",p)    
     # Plotting
     
     
 
-    return err
+    return err, p
 
 
 def column_transformer(param, X):
@@ -339,6 +349,20 @@ def significant(z, alpha, method):
         if p < 0.05:
             print(r"H0 rejected and H1 (mean(z) not 0) accepted with {} confidence level".format(str(1 - alpha)))
 
+def store_error(method,err):
+    d = {}
+    d["method"] = method
+    d["err"] = err
+    
+    data.append(d)
+    
+def get_error(method):
+    d = []
+    for i in data:
+        if i["method"] == method:
+            d.append(i["err"])
+    return np.stack(d, axis=0)
+
 
 def mcnemars(c1, c2):
     d1 = 0
@@ -353,7 +377,6 @@ def mcnemars(c1, c2):
     x = (d1 - d2) ** 2 / (d1 + d2)
 
     chi2.cdf(x, 1)
-
 
 if __name__ == "__main__":
     # Importing the dataset
@@ -393,6 +416,11 @@ if __name__ == "__main__":
 
     # reg(np.power(10., range(-10, 9)), X_float, Y_float)
     # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
-    # methodbest1, err1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 10)
-    methodbest2, err2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn_loo", "log"], 10)
+    #methodbest1, err1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 5)
+    methodbest2, err2, par2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
+    
+    df.columns = ["Baseline","Knn","Log Reg"]
+    df.to_latex()
+    
     # significant(err2[:, 0] - err2[:, 1], 0.05, "2sided")
+    
