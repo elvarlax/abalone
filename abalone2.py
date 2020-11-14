@@ -1,3 +1,4 @@
+import pickle as pi
 import random as r
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,7 +33,10 @@ def reg(lambdas, X, Y):
     N, M = X.shape
     X = np.concatenate((np.ones((X.shape[0], 1)), X), 1)
     M = M + 1
-    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X, Y, lambdas, 10)
+    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, _ = rlr_validate(X,
+                                                                                                         Y,
+                                                                                                         lambdas,
+                                                                                                         10)
     # Estimate weights for the optimal value of lambda, on entire training set
     lambdaI = opt_lambda * np.eye(M)
     lambdaI[0, 0] = 0  # Do no regularize the bias term
@@ -50,19 +54,17 @@ def reg(lambdas, X, Y):
     plt.ylabel(r"$E_{gen}$", size=16)
     plt.show()
 
-    # return w_rlr
-
 
 def lin_reg(x_train, y_train, x_test, y_test):
     N, M = x_train.shape
     x_train = np.concatenate((np.ones((x_train.shape[0], 1)), x_train), 1)
     x_test = np.concatenate((np.ones((x_test.shape[0], 1)), x_test), 1)
     M = M + 1
-    param = np.power(10., range(-10, 9))
-    opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(x_train,
-                                                                                             y_train,
-                                                                                             param,
-                                                                                             10)
+    param = np.power(10., range(-5, 5))
+    opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, test_error = rlr_validate(x_train,
+                                                                                                         y_train,
+                                                                                                         param,
+                                                                                                         10)
     # Estimate weights for the optimal value of lambda, on entire training set
     lambdaI = p * np.eye(M)
     lambdaI[0, 0] = 0  # Do no regularize the bias term
@@ -70,7 +72,8 @@ def lin_reg(x_train, y_train, x_test, y_test):
     XtX = x_train.T @ x_train
     w_rlr = np.linalg.solve(XtX + lambdaI, Xty).squeeze()
     # Compute mean squared error with regularization with optimal lambda
-    Error_train_rlr = np.square(y_train - x_train @ w_rlr).sum(axis=0) / y_train.shape[0]
+    # error_train_rlr = np.square(y_train - x_train @ w_rlr).sum(axis=0) / y_train.shape[0]
+    store_error("lin", test_error)
     err = np.square(y_test - x_test @ w_rlr).sum(axis=0) / y_test.shape[0]
     return err, p
 
@@ -138,7 +141,7 @@ def rlr_validate(X, y, lambdas, cvf=10):
     test_err_vs_lambda = np.mean(test_error, axis=0)
     mean_w_vs_lambda = np.squeeze(np.mean(w, axis=1))
 
-    return opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda
+    return opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, test_error
 
 
 def knn(x_train, y_train, x_test, y_test, param):
@@ -241,9 +244,11 @@ def cross_validation(X, Y, model, param, K):
         plt.title("Loss of Neural Network")
         plt.xlabel("Number of nodes in the hidden layer")
         plt.ylabel("Loss")
-        store_error("ann",er_gen)
-    else if isinstance(param[0],int) and model == knn:
-        store_error("knn",er_gen)
+        store_error("ann", er_gen)
+    elif model == knn:
+        store_error("knn", er_gen)
+    elif model == log_reg:
+        store_error("log", er_gen)
     else:
         plt.figure(2)
         plt.plot(er_gen, 'k')
@@ -277,7 +282,6 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         model = neural_network_train
         K = 5
         param = (1, 2, 3, 4, 5, 7, 10)
-        #param = (1,2)
     elif model_indices == "knn":
         param = range(1, 100)
         model = knn
@@ -289,7 +293,7 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         return lin_reg(x_train, y_train, x_test, y_test)
     elif model_indices == "log":
         model = log_reg
-        param = np.power(10., range(-2, 2))
+        param = np.power(10., range(-5, 5))
     elif model_indices == "reg_baseline":
         return baseline_reg(y_train, y_test)
     elif model_indices == "class_baseline":
@@ -354,10 +358,7 @@ def significant(z, alpha, method):
 
 
 def store_error(method, err):
-    d = {}
-    d["method"] = method
-    d["err"] = err
-
+    d = {"method": method, "err": err}
     data.append(d)
 
 
@@ -395,22 +396,41 @@ def prepare_table(error, param, algo):
         return table
 
 
-def plotting():
-    temp = get_error("ann")
+def plotting(method):
+    if method == "ann":
+        param = (1, 2, 3, 4, 5, 7, 10)
+    elif method == "knn":
+        param = range(1, 100)
+    elif method == "lin":
+        param = np.power(10., range(-5, 5))
+    elif method == "log":
+        param = np.power(10., range(-5, 5))
+    else:
+        return None
+
+    temp = get_error(method)
     plt.figure()
-    plt.plot((1, 2, 3, 4, 5, 7, 10),np.mean(temp,0),'k')
     for i in temp:
-        plt.plot((1, 2, 3, 4, 5, 7, 10),i,'or')
+        plt.plot(param, i, 'or')
+    plt.plot(param, np.mean(temp, 0), 'k')
+    if method == "log" or method == "lin":
+        plt.xscale("log")
     plt.show()
-    plt.title("Loss of Neural Network")
-    plt.xlabel("Number of nodes in the hidden layer")
-    plt.ylabel("Loss")
+    # plt.title("Loss of Neural Network")
+    # plt.xlabel("Number of nodes in the hidden layer")
+    # plt.ylabel("Loss")
     plt.grid(b=True, which='major', color='#666666', linestyle='-')
-    
-    
+
+
+def read_pickle(filename):
+    pickle_file = open(filename, "rb")
+    load_file = pi.load(pickle_file)
+    pickle_file.close()
+    return load_file
+
+
 if __name__ == "__main__":
     # Importing the dataset
-    # plt.close(fig='all')
     plt.close(fig='all')
     cA = []
     cB = []
@@ -419,7 +439,7 @@ if __name__ == "__main__":
     X = dataset.iloc[:, :-1].values
     Y = dataset.iloc[:, -1].values
     Y_class = Y.copy()
-    Y_class[Y_class <= 10] = 0
+    Y_class[Y_class <= Y_class.mean()] = 0
     Y_class[Y_class > 0] = 1
 
     # Create a age column from the Rings column + 1.5
@@ -446,10 +466,31 @@ if __name__ == "__main__":
 
     # reg(np.power(10., range(-10, 9)), X_float, Y_float)
     # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
-    mb1, err1, par1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 5)
-    mb2, err2, par2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
-    table_reg = prepare_table(err1, par1, ["baseline_error", "lin_param", "lin_error", "ann_param", "ann_error"])
-    table_class = prepare_table(err2, par2, ["baseline_error", "knn_param", "knn_error", "log_param", "log_error"])
-    # significant(err2[:, 0] - err2[:, 1], 0.05, "2sided")
 
-    plotting()
+    choice = 2
+    if choice == 1:
+        # mb1, err1, par1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 5)
+        mb2, err2, par2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
+        # table_reg = prepare_table(err1, par1, ["baseline_error", "lin_param", "lin_error", "ann_param", "ann_error"])
+        # table_class = prepare_table(err2, par2, ["baseline_error", "knn_param", "knn_error", "log_param", "log_error"])
+        abalone2 = {"data": data, "mb2": mb2, "err2": err2, "par2": par2, "ca": cA, "cb": cB, "cc": cC}
+        pickle_out = open("abalone2.pickle", "wb")
+        pi.dump(abalone2, pickle_out)
+        pickle_out.close()
+    elif choice == 2:
+        file = read_pickle("abalone.pickle")
+        table_reg = prepare_table(file["err1"], file["par1"],
+                                  ["baseline_error", "lin_param", "lin_error", "ann_param", "ann_error"])
+        data = file["data"]
+        plotting("ann")
+        plotting("lin")
+    elif choice == 3:
+        file = read_pickle("abalone2.pickle")
+        table_class = prepare_table(file["err2"], file["par2"],
+                                    ["baseline_error", "knn_param", "knn_error", "log_param", "log_error"])
+        data = file["data"]
+        cA = file["ca"]
+        cB = file["cb"]
+        cC = file["cc"]
+        plotting("knn")
+        plotting("log")
