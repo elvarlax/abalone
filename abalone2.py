@@ -151,7 +151,7 @@ def knn(x_train, y_train, x_test, y_test, param):
 
 
 def log_reg(x_train, y_train, x_test, y_test, param):
-    classifier = LogisticRegression(random_state=0, C=param)
+    classifier = LogisticRegression(random_state=0, C=1 / param)
     classifier.fit(x_train, y_train)
     y_pred = classifier.predict(x_test).T
     global cA
@@ -277,7 +277,7 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         param = range(1, 100,5)
         model = knn
     elif model_indices == "knn_loo":
-        param = range(1, 100)
+        param = (1, 10, 50, 100)
         model = knn
         K = len(x_train) - 1
     elif model_indices == "lin":
