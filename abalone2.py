@@ -17,7 +17,7 @@ from scipy.stats import beta as b
 from scipy.stats import binom
 
 global data
-data = []
+#data = []
     
     
 def acc_score(y_pred, y_test):
@@ -243,6 +243,8 @@ def cross_validation(X, Y, model, param, K):
         plt.xlabel("Number of nodes in the hidden layer")
         plt.ylabel("Loss")
         store_error("ann",er_gen)
+    else if isinstance(param[0],int) and model == knn:
+        store_error("knn",er_gen)
     else:
         plt.figure(2)
         plt.plot(er_gen, 'k')
@@ -271,13 +273,14 @@ def baseline_class(y_train, y_test):
 
 def models(x_train, y_train, x_test, y_test, model_indices):
     global a
-    K = 2
+    K = 10
     if model_indices == "ann":
         model = neural_network_train
-        #param = (1, 2, 3, 4, 5, 7, 10)
-        param = (1,2)
+        K = 5
+        param = (1, 2, 3, 4, 5, 7, 10)
+        #param = (1,2)
     elif model_indices == "knn":
-        param = range(1, 100,5)
+        param = range(1, 100)
         model = knn
     elif model_indices == "knn_loo":
         param = (1, 10, 50, 100)
@@ -392,6 +395,19 @@ def mcnemars(c1, c2,alpha):
     print("The p-value is ", p)
 
 
+def plotting():
+    temp = get_error("ann")
+    plt.figure()
+    plt.plot((1, 2, 3, 4, 5, 7, 10),np.mean(temp,0),'k')
+    for i in temp:
+        plt.plot((1, 2, 3, 4, 5, 7, 10),i,'or')
+    plt.show()
+    plt.title("Loss of Neural Network")
+    plt.xlabel("Number of nodes in the hidden layer")
+    plt.ylabel("Loss")
+    plt.grid(b=True, which='major', color='#666666', linestyle='-')
+    
+    
 if __name__ == "__main__":
     # Importing the dataset
     # plt.close(fig='all')
@@ -430,11 +446,10 @@ if __name__ == "__main__":
 
     # reg(np.power(10., range(-10, 9)), X_float, Y_float)
     # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
-    #methodbest1, err1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 5)
-    methodbest2, err2, par2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
+    #methodbest1, err1, par1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 5)
+    #methodbest2, err2, par2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
     
-    df.columns = ["Baseline","Knn","Log Reg"]
-    df.to_latex()
+    #significant(err2[:, 0] - err2[:, 1], 0.05, "2sided")
+    #significant(err2[:, 1] - err2[:, 2], 0.05, "2sided")
     
-    # significant(err2[:, 0] - err2[:, 1], 0.05, "2sided")
-    
+    plotting()
