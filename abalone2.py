@@ -13,13 +13,11 @@ from scipy.stats import chi2
 from toolbox_02450 import train_neural_net
 
 from scipy.stats import t
-from scipy.stats import beta as b
-from scipy.stats import binom
 
 global data
-#data = []
-    
-    
+data = []
+
+
 def acc_score(y_pred, y_test):
     len_test = len(y_test)
     mix = y_pred + y_test
@@ -36,7 +34,6 @@ def reg(lambdas, X, Y):
     M = M + 1
     opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X, Y, lambdas, 10)
     # Estimate weights for the optimal value of lambda, on entire training set
-    #opt_lambda=0
     lambdaI = opt_lambda * np.eye(M)
     lambdaI[0, 0] = 0  # Do no regularize the bias term
     Xty = X.T @ Y
@@ -62,7 +59,9 @@ def lin_reg(x_train, y_train, x_test, y_test):
     x_test = np.concatenate((np.ones((x_test.shape[0], 1)), x_test), 1)
     M = M + 1
     param = np.power(10., range(-10, 9))
-    opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(x_train, y_train, param,
+    opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(x_train,
+                                                                                             y_train,
+                                                                                             param,
                                                                                              10)
     # Estimate weights for the optimal value of lambda, on entire training set
     lambdaI = p * np.eye(M)
@@ -73,7 +72,7 @@ def lin_reg(x_train, y_train, x_test, y_test):
     # Compute mean squared error with regularization with optimal lambda
     Error_train_rlr = np.square(y_train - x_train @ w_rlr).sum(axis=0) / y_train.shape[0]
     err = np.square(y_test - x_test @ w_rlr).sum(axis=0) / y_test.shape[0]
-    return err
+    return err, p
 
 
 def rlr_validate(X, y, lambdas, cvf=10):
@@ -84,13 +83,13 @@ def rlr_validate(X, y, lambdas, cvf=10):
         average weight values for all lambdas, MSE train&validation errors for all lambdas.
         The cross validation splits are standardized based on the mean and standard
         deviation of the training set when estimating the regularization strength.
-        
+
         Parameters:
         X       training data set
         y       vector of values
         lambdas vector of lambda values to be validated
-        cvf     number of crossvalidation folds     
-        
+        cvf     number of crossvalidation folds
+
         Returns:
         opt_val_err         validation error for optimum lambda
         opt_lambda          value of optimal lambda
@@ -236,9 +235,9 @@ def cross_validation(X, Y, model, param, K):
     er_gen = np.mean(err, 0)
     print(err)
     print(param[np.argmin(er_gen)])
-    if isinstance(param[0],int) and model == neural_network_train:
+    if isinstance(param[0], int) and model == neural_network_train:
         plt.figure(1)
-        plt.plot(param,er_gen, 'k')
+        plt.plot(param, er_gen, 'k')
         plt.title("Loss of Neural Network")
         plt.xlabel("Number of nodes in the hidden layer")
         plt.ylabel("Loss")
@@ -305,10 +304,8 @@ def models(x_train, y_train, x_test, y_test, model_indices):
     a = 1
     err = model(x_train, y_train, x_test, y_test, p)
     a = 0
-    #store_error("Outer",p)    
+    # store_error("Outer",p)
     # Plotting
-    
-    
 
     return err, p
 
@@ -324,7 +321,7 @@ def feature_scale(x):
     return x_trans
 
 
-def significant(z, alpha, method="2sided"):
+def significant(z, alpha, method):
     J = len(z)
     # K=J
     zhat = np.mean(z)
@@ -348,19 +345,22 @@ def significant(z, alpha, method="2sided"):
         bounds = sigma * t.ppf(alpha / 2, J - 1)
         CI = [zhat + bounds, zhat - bounds]
         print("The " + str((1 - alpha) * 100) + "% CI is: ", CI)
+        print(zhat + bounds)
         print("The p-value is ", p)
         if abs(p) > alpha / 2:
             print("H0 cannot be rejected")
         if p < 0.05:
             print(r"H0 rejected and H1 (mean(z) not 0) accepted with {} confidence level".format(str(1 - alpha)))
 
-def store_error(method,err):
+
+def store_error(method, err):
     d = {}
     d["method"] = method
     d["err"] = err
-    
+
     data.append(d)
-    
+
+
 def get_error(method):
     d = []
     for i in data:
@@ -369,10 +369,9 @@ def get_error(method):
     return np.stack(d, axis=0)
 
 
-def mcnemars(c1, c2,alpha):
+def mcnemars(c1, c2):
     d1 = 0
     d2 = 0
-    n=len(c1)
     for i in range(len(c1)):
         for f in range(len(c1[i])):
             if c1[i][f] and not c2[i][f]:
@@ -380,19 +379,20 @@ def mcnemars(c1, c2,alpha):
             if not c1[i][f] and c2[i][f]:
                 d2 += 1
     print("b = " + str(d1) + " c = " + str(d2))
-    N=d1+d2
-    if N<5:
-        print("warning, n12+n21<5 ")
-    E=(d1 - d2) / n #expected value
-    Q=(n**2*(n+1)*(E+1)*(E-1))/(n*(d1+d2)-(d1-d2)**2)
-    f=(E+1)*(Q-1)/2
-    g=(1-E)*(Q-1)/2    
-    CI1=2 * b.ppf(alpha/2,f,g)-1
-    CI2=2 * b.ppf(1-alpha/2,f,g)-1
-    CI=[CI1,CI2]
-    p=2*binom.cdf(min([d1,d2]),n=N,p=0.5)
-    print("The " + str((1 - alpha) * 100) + "% CI is: ", CI)
-    print("The p-value is ", p)
+    x = (d1 - d2) ** 2 / (d1 + d2)
+
+    chi2.cdf(x, 1)
+
+
+def prepare_table(error, param, algo):
+    if len(algo) == 5:
+        table = pd.DataFrame()
+        table[algo[0]] = error[:, 0]
+        table[algo[1]] = param[:, 1]
+        table[algo[2]] = error[:, 1]
+        table[algo[3]] = param[:, 2]
+        table[algo[4]] = error[:, 2]
+        return table
 
 
 def plotting():
@@ -411,7 +411,7 @@ def plotting():
 if __name__ == "__main__":
     # Importing the dataset
     # plt.close(fig='all')
-    #plt.close(fig='all')
+    plt.close(fig='all')
     cA = []
     cB = []
     cC = []
@@ -446,10 +446,10 @@ if __name__ == "__main__":
 
     # reg(np.power(10., range(-10, 9)), X_float, Y_float)
     # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
-    #methodbest1, err1, par1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 5)
-    #methodbest2, err2, par2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
-    
-    #significant(err2[:, 0] - err2[:, 1], 0.05, "2sided")
-    #significant(err2[:, 1] - err2[:, 2], 0.05, "2sided")
-    
+    mb1, err1, par1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 5)
+    mb2, err2, par2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
+    table_reg = prepare_table(err1, par1, ["baseline_error", "lin_param", "lin_error", "ann_param", "ann_error"])
+    table_class = prepare_table(err2, par2, ["baseline_error", "knn_param", "knn_error", "log_param", "log_error"])
+    # significant(err2[:, 0] - err2[:, 1], 0.05, "2sided")
+
     plotting()
