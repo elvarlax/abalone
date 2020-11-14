@@ -10,10 +10,21 @@ from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from scipy.stats import chi2
+from sklearn.model_selection import LeaveOneOut
 
 from toolbox_02450 import train_neural_net
 
 from scipy.stats import t
+
+
+def acc_score(y_pred, y_test):
+    len_test = len(y_test)
+    mix = y_pred + y_test
+    mix = list(mix)
+    tn = mix.count(0)
+    tp = mix.count(2)
+    acc = (tn + tp) / len_test
+    return 1 - acc
 
 
 def reg(lambdas, X, Y):
@@ -127,26 +138,25 @@ def rlr_validate(X, y, lambdas, cvf=10):
     return opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda
 
 
-def knn(x, y, param):
-    classifier = KNeighborsClassifier(n_neighbors=param, metric='minkowski', p=2)
-    classifier.fit(x, y)
-    y_pred = classifier.predict(x)
+def knn(x_train, y_train, x_test, y_test, param):
+    classifier = KNeighborsClassifier(n_neighbors=param)
+    classifier.fit(x_train, y_train)
+    y_pred = classifier.predict(x_test)
     global cB
     if a == 1:
-        cB.append(y_pred == y)
+        cB.append(y_pred == y_test)
         print("Knn")
-    return accuracy_score(y, y_pred)
+    return acc_score(y_test, y_pred)
 
 
 def log_reg(x_train, y_train, x_test, y_test, param):
     classifier = LogisticRegression(random_state=0, C=param)
     classifier.fit(x_train, y_train)
     y_pred = classifier.predict(x_test).T
-    test_error_rate = np.sum(y_pred != y_test) / len(y_test)
     global cA
     if a == 1:
         cA.append(y_pred == y_test)
-    return test_error_rate
+    return acc_score(y_pred, y_test)
 
 
 def neural_network_train(x_train, y_train, x_test, y_test, param):
@@ -239,20 +249,22 @@ def baseline_class(y_train, y_test):
     if a == 1:
         cC.append(y_pred == y_test)
         print("Baseline")
-    return accuracy_score(y_test, y_pred)
+    return acc_score(y_test, y_pred)
 
 
 def models(x_train, y_train, x_test, y_test, model_indices):
     global a
+    K = 5
     if model_indices == "ann":
         model = neural_network_train
         param = (3, 4, 5, 7, 9)
     elif model_indices == "knn":
         param = (1, 5, 10)
-        a = 0
-        chosen_k = [knn(x_train, y_train, k) for k in param]
-        a = 1
-        return knn(x_test, y_test, np.argmin(chosen_k))
+        model = knn
+    elif model_indices == "knn_loo":
+        param = (1, 5, 10)
+        model = knn
+        K = len(x_train) - 1
     elif model_indices == "lin":
         return lin_reg(x_train, y_train, x_test, y_test)
     elif model_indices == "log":
@@ -268,7 +280,7 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         return None
 
     a = 0
-    p, _ = cross_validation(x_train, y_train, model, param, 5)
+    p, _ = cross_validation(x_train, y_train, model, param, K)
     a = 1
     err = model(x_train, y_train, x_test, y_test, p)
     a = 0
@@ -291,7 +303,7 @@ def significant(z, alpha, method):
     J = len(z)
     # K=J
     zhat = np.mean(z)
-    s2 = 1 / ((J - 1)) * sum((z - zhat) ** 2)
+    s2 = 1 / (J - 1) * sum((z - zhat) ** 2)
     sigma = np.sqrt(s2 * (1 / J + 1 / (J - 1)))
 
     if method == "1sided":
@@ -324,9 +336,9 @@ def mcnemars(c1, c2):
     d2 = 0
     for i in range(len(c1)):
         for f in range(len(c1[i])):
-            if c1[i][f] and (not c2[i][f]):
+            if c1[i][f] and not c2[i][f]:
                 d1 += 1
-            if (not c1[i][f]) and (c2[i][f]):
+            if not c1[i][f] and c2[i][f]:
                 d2 += 1
     print("b = " + str(d1) + " c = " + str(d2))
     x = (d1 - d2) ** 2 / (d1 + d2)
@@ -372,6 +384,7 @@ if __name__ == "__main__":
 
     # reg(np.power(10., range(-10, 9)), X_float, Y_float)
     # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
-    methodbest1, err1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 10)
-    methodbest2, err2 = cross_validation(X_float, Y_float, models, ["class_baseline", "knn", "log"], 10)
-    significant(err1[:, 0] - err1[:, 1], 0.05, "2sided")
+    # methodbest1, err1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 10)
+    # methodbest2, err2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
+    methodbest2, err2 = cross_validation(X_float, Y_class, models, ["knn", "log"], 10)
+    # significant(err2[:, 0] - err2[:, 1], 0.05, "2sided")
