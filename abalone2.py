@@ -6,11 +6,9 @@ import torch
 from sklearn import model_selection
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from scipy.stats import chi2
-from sklearn.model_selection import LeaveOneOut
 
 from toolbox_02450 import train_neural_net
 
@@ -259,10 +257,10 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         model = neural_network_train
         param = (3, 4, 5, 7, 9)
     elif model_indices == "knn":
-        param = (1, 5, 10, 50, 100)
+        param = range(1, 100)
         model = knn
     elif model_indices == "knn_loo":
-        param = (1, 5, 10)
+        param = range(1, 100)
         model = knn
         K = len(x_train) - 1
     elif model_indices == "lin":
@@ -385,6 +383,5 @@ if __name__ == "__main__":
     # reg(np.power(10., range(-10, 9)), X_float, Y_float)
     # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
     # methodbest1, err1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 10)
-    # methodbest2, err2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
-    methodbest2, err2 = cross_validation(X_float, Y_class, models, ["knn"], 10)
+    methodbest2, err2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn_loo", "log"], 10)
     # significant(err2[:, 0] - err2[:, 1], 0.05, "2sided")
