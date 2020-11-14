@@ -33,10 +33,10 @@ def reg(lambdas, X, Y):
     N, M = X.shape
     X = np.concatenate((np.ones((X.shape[0], 1)), X), 1)
     M = M + 1
-    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, _ = rlr_validate(X,
-                                                                                                         Y,
-                                                                                                         lambdas,
-                                                                                                         10)
+    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X,
+                                                                                                      Y,
+                                                                                                      lambdas,
+                                                                                                      10)
     # Estimate weights for the optimal value of lambda, on entire training set
     lambdaI = opt_lambda * np.eye(M)
     lambdaI[0, 0] = 0  # Do no regularize the bias term
@@ -61,10 +61,10 @@ def lin_reg(x_train, y_train, x_test, y_test):
     x_test = np.concatenate((np.ones((x_test.shape[0], 1)), x_test), 1)
     M = M + 1
     param = np.power(10., range(-5, 5))
-    opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, test_error = rlr_validate(x_train,
-                                                                                                         y_train,
-                                                                                                         param,
-                                                                                                         10)
+    opt_val_err, p, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(x_train,
+                                                                                             y_train,
+                                                                                             param,
+                                                                                             10)
     # Estimate weights for the optimal value of lambda, on entire training set
     lambdaI = p * np.eye(M)
     lambdaI[0, 0] = 0  # Do no regularize the bias term
@@ -73,7 +73,7 @@ def lin_reg(x_train, y_train, x_test, y_test):
     w_rlr = np.linalg.solve(XtX + lambdaI, Xty).squeeze()
     # Compute mean squared error with regularization with optimal lambda
     # error_train_rlr = np.square(y_train - x_train @ w_rlr).sum(axis=0) / y_train.shape[0]
-    store_error("lin", test_error)
+    store_error("lin", test_err_vs_lambda)
     err = np.square(y_test - x_test @ w_rlr).sum(axis=0) / y_test.shape[0]
     return err, p
 
@@ -141,7 +141,7 @@ def rlr_validate(X, y, lambdas, cvf=10):
     test_err_vs_lambda = np.mean(test_error, axis=0)
     mean_w_vs_lambda = np.squeeze(np.mean(w, axis=1))
 
-    return opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, test_error
+    return opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda
 
 
 def knn(x_train, y_train, x_test, y_test, param):
@@ -397,29 +397,32 @@ def prepare_table(error, param, algo):
 
 
 def plotting(method):
+    temp = get_error(method)
     if method == "ann":
         param = (1, 2, 3, 4, 5, 7, 10)
     elif method == "knn":
         param = range(1, 100)
     elif method == "lin":
         param = np.power(10., range(-5, 5))
+        temp = np.mean(temp, 0)
     elif method == "log":
         param = np.power(10., range(-5, 5))
     else:
         return None
 
-    temp = get_error(method)
-    plt.figure()
+    plt.figure(figsize=[12, 6])
     for i in temp:
         plt.plot(param, i, 'or')
     plt.plot(param, np.mean(temp, 0), 'k')
     if method == "log" or method == "lin":
         plt.xscale("log")
+    plt.xlabel(r"Model complexity controlling parameter", size=16)
+    plt.ylabel(r"$E_{test}$", size=16)
+    plt.grid()
     plt.show()
     # plt.title("Loss of Neural Network")
     # plt.xlabel("Number of nodes in the hidden layer")
     # plt.ylabel("Loss")
-    plt.grid(b=True, which='major', color='#666666', linestyle='-')
 
 
 def read_pickle(filename):
@@ -467,7 +470,7 @@ if __name__ == "__main__":
     # reg(np.power(10., range(-10, 9)), X_float, Y_float)
     # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
 
-    choice = 2
+    choice = 3
     if choice == 1:
         # mb1, err1, par1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 5)
         mb2, err2, par2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
