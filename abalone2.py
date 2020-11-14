@@ -14,6 +14,8 @@ from scipy.stats import chi2
 from toolbox_02450 import train_neural_net
 
 from scipy.stats import t
+from scipy.stats import beta as b
+from scipy.stats import binom
 
 global data
 data = []
@@ -370,9 +372,10 @@ def get_error(method):
     return np.stack(d, axis=0)
 
 
-def mcnemars(c1, c2):
+def mcnemars(c1, c2, alpha):
     d1 = 0
     d2 = 0
+    n = len(np.hstack(c1))
     for i in range(len(c1)):
         for f in range(len(c1[i])):
             if c1[i][f] and not c2[i][f]:
@@ -380,9 +383,19 @@ def mcnemars(c1, c2):
             if not c1[i][f] and c2[i][f]:
                 d2 += 1
     print("b = " + str(d1) + " c = " + str(d2))
-    x = (d1 - d2) ** 2 / (d1 + d2)
-
-    chi2.cdf(x, 1)
+    N = d1 + d2
+    if N < 5:
+        print("warning, n12+n21<5 ")
+    E = (d1 - d2) / n  # expected value
+    Q = (n ** 2 * (n + 1) * (E + 1) * (E - 1)) / (n * (d1 + d2) - (d1 - d2) ** 2)
+    f = (E + 1) * (Q - 1) / 2
+    g = (1 - E) * (Q - 1) / 2
+    CI1 = 2 * b.ppf(alpha / 2, f, g) - 1
+    CI2 = 2 * b.ppf(1 - alpha / 2, f, g) - 1
+    CI = [CI1, CI2]
+    p = 2 * binom.cdf(min([d1, d2]), n=N, p=0.5)
+    print("The " + str((1 - alpha) * 100) + "% CI is: ", CI)
+    print("The p-value is ", p)
 
 
 def prepare_table(error, param, algo):
