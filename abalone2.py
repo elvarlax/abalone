@@ -259,7 +259,7 @@ def models(x_train, y_train, x_test, y_test, model_indices):
         model = neural_network_train
         param = (3, 4, 5, 7, 9)
     elif model_indices == "knn":
-        param = (1, 5, 10)
+        param = (1, 5, 10, 50, 100)
         model = knn
     elif model_indices == "knn_loo":
         param = (1, 5, 10)
@@ -386,5 +386,5 @@ if __name__ == "__main__":
     # print(cross_validation(X, age, neural_network_train, [5, 6, 7], 5))
     # methodbest1, err1 = cross_validation(X_float, Y_float, models, ["reg_baseline", "lin", "ann"], 10)
     # methodbest2, err2 = cross_validation(X_float, Y_class, models, ["class_baseline", "knn", "log"], 10)
-    methodbest2, err2 = cross_validation(X_float, Y_class, models, ["knn", "log"], 10)
+    methodbest2, err2 = cross_validation(X_float, Y_class, models, ["knn"], 10)
     # significant(err2[:, 0] - err2[:, 1], 0.05, "2sided")
