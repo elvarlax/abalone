@@ -225,8 +225,15 @@ def cross_validation(X, Y, model, param, K):
     er_gen = np.mean(err, 0)
     print(err)
     print(param[np.argmin(er_gen)])
-    plt.figure()
-    plt.plot(er_gen, 'ok')
+    if isinstance(param[0],int) and model == neural_network_train:
+        plt.figure(1)
+        plt.plot(param,er_gen, 'k')
+        plt.title("Loss of Neural Network")
+        plt.xlabel("Number of nodes in the hidden layer")
+        plt.ylabel("Loss")
+    else:
+        plt.figure(2)
+        plt.plot(er_gen, 'k')
     plt.show()
     return param[np.argmin(er_gen)], err
 
@@ -255,7 +262,7 @@ def models(x_train, y_train, x_test, y_test, model_indices):
     K = 5
     if model_indices == "ann":
         model = neural_network_train
-        param = (3, 4, 5, 7, 9)
+        param = (1, 2, 3, 4, 5, 7, 10)
     elif model_indices == "knn":
         param = range(1, 100)
         model = knn
@@ -282,6 +289,10 @@ def models(x_train, y_train, x_test, y_test, model_indices):
     a = 1
     err = model(x_train, y_train, x_test, y_test, p)
     a = 0
+    
+    # Plotting
+    
+    
 
     return err
 
